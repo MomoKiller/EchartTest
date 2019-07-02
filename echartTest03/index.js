@@ -1,4 +1,4 @@
-app.title = '2015 年上证指数';
+// app.title = '2015 年上证指数';
 
 var rawData = [
     ['2015/12/31', '3570.47', '3539.18', '-33.69', '-0.94%', '3538.35', '3580.6', '176963664', '25403106', '-'],
@@ -297,12 +297,13 @@ var option = {
     xAxis: {
         type: 'category',
         data: dates,
-        axisLine: { lineStyle: { color: '#8392A5' } }
+        axisLine: { lineStyle: { color: '#8392A5' } },
+        splitLine: { show: true, lineStyle: { color: '#999999', width: 0.5 } }
     },
     yAxis: {
         scale: true,
         axisLine: { lineStyle: { color: '#8392A5' } },
-        splitLine: { show: false }
+        splitLine: { show: true, lineStyle: { color: '#999999', width: 0.5 } }
     },
     grid: {
         bottom: 80
@@ -334,8 +335,8 @@ var option = {
     }],
     animation: false,
     series: [{
-            type: 'candlestick',
             name: '日K',
+            type: 'candlestick',
             data: data,
             itemStyle: {
                 normal: {

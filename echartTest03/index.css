@@ -29,6 +29,7 @@ li {
     width: 150px;
     height: 300px;
     top: 0;
+    display: none;
 }
 
 #chartTabel {
@@ -38,7 +39,6 @@ li {
 }
 
 .model-box li {
-    /* height: 40px; */
     line-height: 25px;
     margin: 0 10px;
 }

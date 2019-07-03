@@ -239,7 +239,8 @@ var option = {
             type: 'inside',
             xAxisIndex: [0, 1, 2],
             start: 0,
-            end: 100
+            end: 100,
+            zoomOnMouseWheel: false
         },
         {
             show: false,
@@ -247,7 +248,8 @@ var option = {
             type: 'slider',
             top: '85%',
             start: 0,
-            end: 100
+            end: 100,
+            zoomOnMouseWheel: false
         }
     ],
     series: [{
@@ -329,6 +331,7 @@ var option = {
 };
 
 var myChart = echarts.init(document.getElementById('chartTabel'));
+var domChart = document.getElementById('chartTabel');
 myChart.setOption(option);
 
 // 鼠标双击-基于EchartsAPI
@@ -336,104 +339,160 @@ myChart.setOption(option);
 var _selDate;
 var _dateIndex;
 var _yIndex;
-myChart.on('dblclick', function(params) {
+var _hasAxisPointer = false;
+var _seriesName;
+myChart.on('click', function(params) {
+    // console.log(params);
+    // console.log(Object.keys(data));
 
-    _selDate = params.name;
-    _dateIndex = data.categoryData.indexOf(_selDate);
-    if (params.componentIndex == 5) {
+    // _seriesName = params.seriesName;
+    // data
+});
+//.getZr()
+myChart.on('dblclick', function(params) {
+    // var pointInPixel = [params.offsetX, params.offsetY];
+    // if (myChart.containPixel('grid', pointInPixel)) {
+    // var pointInGrid = myChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
+    // var xIndex = pointInGrid[0];
+    // var op = myChart.getOption();
+    // console.log(op);
+    // var month = op.xAxis[0].data[xIndex];
+    // }
+
+    if (params.seriesName === "Volumn") {
         _yIndex = 1;
-    } else if (params.componentIndex == 6) {
+    } else if (params.seriesName === "Volumn2") {
         _yIndex = 2;
     } else {
         _yIndex = 0;
     }
-    var axisPointer = {
-        z: 100,
-        value: data.categoryData[_dateIndex],
-        handle: {
-            show: true,
-            color: '#004E52'
-        }
-    };
-    var yxisPointer = {
-        z: 100,
-        value: params.value,
-        handle: {
-            show: true,
-            color: '#004E52'
-        }
-    };
-    option.xAxis[0].axisPointer = axisPointer;
-    option.xAxis[1].axisPointer = axisPointer;
-    option.xAxis[2].axisPointer = axisPointer;
-    option.yAxis[_yIndex].axisPointer = yxisPointer;
-    myChart.setOption(option);
+    _dateIndex = data.categoryData.indexOf(params.name);
+    if (!_hasAxisPointer) {
+        var axisPointer = {
+            z: 100,
+            value: data.categoryData[_dateIndex],
+            handle: {
+                show: true,
+                color: '#004E52'
+            },
+            show: true
+        };
+        var yxisPointer = {
+            z: 100,
+            value: params.value,
+            handle: {
+                show: true,
+                color: '#004E52'
+            },
+            show: true
+        };
+        option.xAxis[0].axisPointer = axisPointer;
+        option.xAxis[1].axisPointer = axisPointer;
+        option.xAxis[2].axisPointer = axisPointer;
+        option.yAxis[_yIndex].axisPointer = yxisPointer;
+        option.dataZoom[0].end = _zomEnd;
+        option.dataZoom[1].end = _zomEnd;
+        _hasAxisPointer = true;
+        myChart.setOption(option);
+    } else {
+        var axisPointer = {
+            z: 100,
+            value: null,
+            show: false
+        };
+        var yxisPointer = {
+            z: 100,
+            value: null,
+            show: false
+        };
+        option.xAxis[0].axisPointer = axisPointer;
+        option.xAxis[1].axisPointer = axisPointer;
+        option.xAxis[2].axisPointer = axisPointer;
+        option.yAxis[_yIndex].axisPointer = yxisPointer;
+        option.dataZoom[0].end = _zomEnd;
+        option.dataZoom[1].end = _zomEnd;
+        _hasAxisPointer = false;
+        myChart.setOption(option);
+    }
+    return false;
 });
 
+
+
 // 添加键盘监听事件
+var _zomEnd = 100;
 document.onkeydown = function(event) {
     var e = event || window.event || arguments.callee.caller.arguments[0];
     var axisPointer;
     // 左 _selDate
     if (e && e.keyCode == 37) {
-        _dateIndex--;
-        axisPointer = {
-            z: 100,
-            value: data.categoryData[_dateIndex],
-            handle: {
-                show: true,
-                color: '#004E52'
-            }
-        };
-        option.xAxis[0].axisPointer = axisPointer;
-        option.xAxis[1].axisPointer = axisPointer;
-        option.xAxis[2].axisPointer = axisPointer;
-        myChart.setOption(option);
+        if (_dateIndex > 0) {
+            _dateIndex--;
+            axisPointer = {
+                z: 100,
+                value: data.categoryData[_dateIndex],
+                handle: {
+                    show: true,
+                    color: '#004E52'
+                }
+            };
+            option.xAxis[0].axisPointer = axisPointer;
+            option.xAxis[1].axisPointer = axisPointer;
+            option.xAxis[2].axisPointer = axisPointer;
+            myChart.setOption(option);
+        }
+        return false;
     }
     // 右
     if (e && e.keyCode == 39) {
-        _dateIndex++;
-        axisPointer = {
-            z: 100,
-            value: data.categoryData[_dateIndex],
-            handle: {
-                show: true,
-                color: '#004E52'
-            }
-        };
-        option.xAxis[0].axisPointer = axisPointer;
-        option.xAxis[1].axisPointer = axisPointer;
-        option.xAxis[2].axisPointer = axisPointer;
-        myChart.setOption(option);
+        if (_dateIndex < (data.categoryData.length - 1)) {
+            _dateIndex++;
+            axisPointer = {
+                z: 100,
+                value: data.categoryData[_dateIndex],
+                handle: {
+                    show: true,
+                    color: '#004E52'
+                }
+            };
+            option.xAxis[0].axisPointer = axisPointer;
+            option.xAxis[1].axisPointer = axisPointer;
+            option.xAxis[2].axisPointer = axisPointer;
+            myChart.setOption(option);
+        }
+        return false;
     }
     // 上
     if (e && e.keyCode == 38) {
-        myChart.dispatchAction({
-            type: 'dataZoom',
-            dataZoomIndex: 10,
-            start: 10,
-            end: 10,
-            startValue: 10,
-            endValue: 50
-        });
-        myChart.setOption(option);
+
+        if (_zomEnd > 30) {
+            _zomEnd -= 10;
+            option.dataZoom[0].end = _zomEnd;
+            option.dataZoom[1].end = _zomEnd;
+            myChart.setOption(option);
+        }
+        return false;
     }
     // 下
     if (e && e.keyCode == 40) {
-
+        if (_zomEnd <= 90) {
+            _zomEnd += 10;
+            option.dataZoom[0].end = _zomEnd;
+            option.dataZoom[1].end = _zomEnd;
+            myChart.setOption(option);
+        }
+        return false;
     }
 }
 
+var domBox = document.getElementById('modelBox');
 
-// function showBox(data) {
-//     var tempHtml = '<ul>' +
-//         '<li></li>' +
-//         '</ul>';
-
-// }
 function hasValue(params) {
-    console.log(params);
-    var domBox = document.getElementById('modelBox');
+    // if (filterTimer) {
+    //     clearTimeout(filterTimer);
+    // }
+    // var filterTimer = setTimeout(function() {
+    domBox.style.display = 'block';
     var tempHtml = '<ul>';
     params.map(function(item, index) {
         tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
@@ -447,7 +506,6 @@ function hasValue(params) {
         var chartWidth = document.getElementById('chartTabel').offsetWidth;
         var chartLeft = document.getElementById('chartTabel').offsetLeft;
         var leftLen = chartLeft + chartWidth / 2;
-        console.log(moPosition, leftLen);
         if (moPosition > leftLen) {
             domBox.style.right = 0;
             domBox.style.left = '';
@@ -456,8 +514,12 @@ function hasValue(params) {
             domBox.style.right = '';
         }
     }
-
+    // }, 500);
 }
+// 跳出区域
+myChart.getZr().on('globalout', function() {
+    domBox.style.display = 'none';
+});
 
 function getMousePosX(event) {
     var e = window.event;

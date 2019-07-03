@@ -6,12 +6,39 @@ body {
     font-size: 100px;
 }
 
-.main {}
+ul,
+li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    overflow: hidden;
+}
 
-.content-wrap {}
+.main {
+    overflow: hidden;
+}
 
-#chart-tabel {
+.content-wrap {
+    position: relative;
+}
+
+.content-wrap .model-box {
+    background-color: #eeeeee;
+    position: absolute;
+    width: 150px;
+    height: 300px;
+    top: 0;
+}
+
+#chartTabel {
     width: 900px;
     height: 600px;
     margin: 50px auto 0;
+}
+
+.model-box li {
+    /* height: 40px; */
+    line-height: 25px;
+    margin: 0 10px;
 }

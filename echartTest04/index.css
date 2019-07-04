@@ -1,0 +1,44 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    color: #333;
+    font-size: 100px;
+}
+
+ul,
+li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.main {
+    overflow: hidden;
+}
+
+.content-wrap {
+    position: relative;
+}
+
+.content-wrap .model-box {
+    background-color: #eeeeee;
+    position: absolute;
+    width: 150px;
+    height: 300px;
+    top: 0;
+    display: none;
+}
+
+#chartTabel {
+    width: 900px;
+    height: 700px;
+    margin: 50px auto 0;
+}
+
+.model-box li {
+    line-height: 25px;
+    margin: 0 10px;
+}

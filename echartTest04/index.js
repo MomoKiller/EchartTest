@@ -70,14 +70,22 @@ function calculateMA(dayCount, data) {
 }
 
 var data = splitData(rawData);
-
+console.log(data);
 var option = {
     backgroundColor: '#eee',
     animation: false,
     legend: {
-        bottom: 10,
-        left: 'center',
-        data: ['Dow-Jones index', 'MA5', 'MA10', 'MA20', 'MA30']
+        top: '2%',
+        left: '10%',
+        data: ['Dow-Jones index', 'MA5', 'MA10', 'MA20', 'MA30', 'Volumn', 'Volumn2']
+    },
+    toolbox: {
+        feature: {
+            magicType: { show: true, type: ['line', 'bar'] },
+            restore: { show: true }
+        },
+        top: '1%',
+        right: '4%'
     },
     tooltip: {
         trigger: 'axis',
@@ -91,17 +99,8 @@ var option = {
         textStyle: {
             color: '#000'
         },
-        // position: function(pos, params, el, elRect, size) {
-        //     var obj = { top: 10 };
-        //     obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
-        //     return obj;
-        // },
-        // triggerOn: 'none',
-        // triggerOn: 'click',
-        extraCssText: 'width: 170px',
-        formatter: function(params) {
-            hasValue(params);
-        }
+        triggerOn: 'none',
+        extraCssText: 'width: 170px'
     },
     axisPointer: {
         link: { xAxisIndex: 'all' },
@@ -109,39 +108,22 @@ var option = {
             backgroundColor: '#777'
         }
     },
-    // toolbox: {
-    //     feature: {
-    //         dataZoom: {
-    //             yAxisIndex: false
-    //         },
-    //         brush: {
-    //             type: ['lineX', 'clear']
-    //         }
-    //     }
-    // },
-    brush: {
-        xAxisIndex: 'all',
-        brushLink: 'all',
-        outOfBrush: {
-            colorAlpha: 0.1
-        }
-    },
     grid: [{
             left: '10%',
             right: '8%',
-            height: '30%'
+            height: '25%'
         },
         {
             left: '10%',
             right: '8%',
-            top: '55%',
-            height: '15%'
+            top: '37%',
+            height: '25%'
         },
         {
             left: '10%',
             right: '8%',
-            top: '75%',
-            height: '15%'
+            top: '67%',
+            height: '25%'
         }
     ],
     xAxis: [{
@@ -170,19 +152,7 @@ var option = {
             axisLabel: { show: false },
             splitNumber: 20,
             min: 'dataMin',
-            max: 'dataMax',
-            axisPointer: {
-                label: {
-                    formatter: function(params) {
-                        var seriesValue = (params.seriesData[0] || {}).value;
-                        return params.value +
-                            (seriesValue != null ?
-                                '\n' + echarts.format.addCommas(seriesValue) :
-                                ''
-                            );
-                    }
-                }
-            }
+            max: 'dataMax'
         },
         {
             type: 'category',
@@ -196,31 +166,17 @@ var option = {
             axisLabel: { show: false },
             splitNumber: 20,
             min: 'dataMin',
-            max: 'dataMax',
-            axisPointer: {
-                label: {
-                    formatter: function(params) {
-                        var seriesValue = (params.seriesData[0] || {}).value;
-                        return params.value +
-                            (seriesValue != null ?
-                                '\n' + echarts.format.addCommas(seriesValue) :
-                                ''
-                            );
-                    }
-                }
-            }
+            max: 'dataMax'
         }
     ],
     yAxis: [{
             scale: true,
-            splitArea: {
-                show: true
-            }
+            // splitArea: { show: true }
         },
         {
             scale: true,
             gridIndex: 1,
-            splitNumber: 2,
+            // splitNumber: 1,
             axisLabel: { show: false },
             axisLine: { show: false },
             axisTick: { show: false },
@@ -229,11 +185,10 @@ var option = {
         {
             scale: true,
             gridIndex: 2,
-            splitNumber: 3,
+            // splitNumber: 1,
             axisLabel: { show: false },
             axisLine: { show: false },
-            axisTick: { show: false },
-            splitLine: { show: false }
+            axisTick: { show: false }
         }
     ],
     dataZoom: [{
@@ -241,11 +196,12 @@ var option = {
             xAxisIndex: [0, 1, 2],
             start: 0,
             end: 100,
-            zoomOnMouseWheel: false
+            zoomOnMouseWheel: false,
+            show: true
         },
         {
             show: false,
-            xAxisIndex: [0, 1, 2],
+            xAxisIndex: [0, 1],
             type: 'slider',
             top: '85%',
             start: 0,
@@ -265,18 +221,18 @@ var option = {
                     borderColor0: null
                 }
             },
-            tooltip: {
-                formatter: function(param) {
-                    param = param[0];
-                    return [
-                        'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
-                        'Open: ' + param.data[0] + '<br/>',
-                        'Close: ' + param.data[1] + '<br/>',
-                        'Lowest: ' + param.data[2] + '<br/>',
-                        'Highest: ' + param.data[3] + '<br/>'
-                    ].join('');
-                }
-            }
+            // tooltip: {
+            //     formatter: function(param) {
+            //         param = param[0];
+            //         return [
+            //             'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+            //             'Open: ' + param.data[0] + '<br/>',
+            //             'Close: ' + param.data[1] + '<br/>',
+            //             'Lowest: ' + param.data[2] + '<br/>',
+            //             'Highest: ' + param.data[3] + '<br/>'
+            //         ].join('');
+            //     }
+            // }
         },
         {
             name: 'MA5',
@@ -332,28 +288,17 @@ var option = {
 };
 
 var myChart = echarts.init(document.getElementById('chartTabel'));
-var domChart = document.getElementById('chartTabel');
 myChart.setOption(option);
 
+
 // 鼠标双击-基于EchartsAPI
-// var 
 var _selDate;
 var _dateIndex;
 var _yIndex;
 var _hasAxisPointer = false;
 var _seriesName;
 
-//.getZr()
 myChart.on('dblclick', function(params) {
-    // var pointInPixel = [params.offsetX, params.offsetY];
-    // if (myChart.containPixel('grid', pointInPixel)) {
-    // var pointInGrid = myChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
-    // var xIndex = pointInGrid[0];
-    // var op = myChart.getOption();
-    // console.log(op);
-    // var month = op.xAxis[0].data[xIndex];
-    // }
-
     if (params.seriesName === "Volumn") {
         _yIndex = 1;
     } else if (params.seriesName === "Volumn2") {
@@ -386,12 +331,12 @@ myChart.on('dblclick', function(params) {
         option.xAxis[2].axisPointer = axisPointer;
         option.yAxis[_yIndex].axisPointer = yxisPointer;
         option.dataZoom[0].end = _zomEnd;
-        option.dataZoom[1].end = _zomEnd;
         _hasAxisPointer = true;
         myChart.setOption(option);
+        var dataPara = getPintData(_dateIndex);
+        openBox(dataPara);
     } else {
         var axisPointer = {
-            z: 100,
             value: null,
             show: false
         };
@@ -400,19 +345,18 @@ myChart.on('dblclick', function(params) {
             value: null,
             show: false
         };
+
         option.xAxis[0].axisPointer = axisPointer;
         option.xAxis[1].axisPointer = axisPointer;
         option.xAxis[2].axisPointer = axisPointer;
         option.yAxis[_yIndex].axisPointer = yxisPointer;
         option.dataZoom[0].end = _zomEnd;
-        option.dataZoom[1].end = _zomEnd;
         _hasAxisPointer = false;
         myChart.setOption(option);
+        openBox('');
     }
     return false;
 });
-
-
 
 // 添加键盘监听事件
 var _zomEnd = 100;
@@ -435,6 +379,8 @@ document.onkeydown = function(event) {
             option.xAxis[1].axisPointer = axisPointer;
             option.xAxis[2].axisPointer = axisPointer;
             myChart.setOption(option);
+            var paramData = getPintData(_dateIndex);
+            openBox(paramData);
         }
         return false;
     }
@@ -454,6 +400,8 @@ document.onkeydown = function(event) {
             option.xAxis[1].axisPointer = axisPointer;
             option.xAxis[2].axisPointer = axisPointer;
             myChart.setOption(option);
+            var paramData = getPintData(_dateIndex);
+            openBox(paramData);
         }
         return false;
     }
@@ -480,46 +428,46 @@ document.onkeydown = function(event) {
     }
 }
 
-var domBox = document.getElementById('modelBox');
+// 弹框
+var _domBox = document.getElementById('modelBox');
+var _helfLen = Math.floor(data.categoryData.length / 2);
 
-function hasValue(params) {
-    console.log(params);
-    if (filterTimer) {
-        clearTimeout(filterTimer);
-    }
-    var filterTimer = setTimeout(function() {
-        domBox.style.display = 'block';
+function openBox(params) {
+    if (params && params.length) {
+        _domBox.style.display = 'block';
         var tempHtml = '<ul>';
         params.map(function(item) {
             tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
         })
         tempHtml += '</ul>';
-        domBox.innerHTML = tempHtml;
-        // 判断鼠标X坐标
-        // var e = window.event;
-        // if (e) {
-        var moPosition = getMousePosX();
-        var chartWidth = document.getElementById('chartTabel').offsetWidth;
-        var chartLeft = document.getElementById('chartTabel').offsetLeft;
-        var leftLen = chartLeft + chartWidth / 2;
-        if (moPosition > leftLen) {
-            domBox.style.right = 0;
-            domBox.style.left = '';
-        } else {
-            domBox.style.left = 0;
-            domBox.style.right = '';
-        }
-        // }
-    }, 500);
-}
-// 跳出区域
-myChart.getZr().on('globalout', function() {
-    domBox.style.display = 'none';
-});
+        _domBox.innerHTML = tempHtml;
+        _domBox.style.display = 'block';
 
-function getMousePosX(event) {
-    var e = window.event;
-    var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var x = e.pageX || e.clientX + scrollX;
-    return x;
+        if (_dateIndex > _helfLen) {
+            _domBox.style.right = 0;
+            _domBox.style.left = '';
+        } else {
+            _domBox.style.left = 0;
+            _domBox.style.right = '';
+        }
+    } else {
+        _domBox.style.display = 'none';
+    }
 }
+// 获取数据
+function getPintData(_dateIndex) {
+    var op = myChart.getOption();
+    var paramArray = [];
+    for (var i = 0; i < op.series.length; i++) {
+        paramArray.push({
+            'name': op.series[i].name,
+            'value': op.series[i].data[_dateIndex]
+        });
+    }
+    return paramArray;
+}
+
+// 跳出canvas
+myChart.getZr().on('globalout', function() {
+    _domBox.style.display = 'none';
+});

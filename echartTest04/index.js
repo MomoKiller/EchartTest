@@ -220,19 +220,7 @@ var option = {
                     borderColor: null,
                     borderColor0: null
                 }
-            },
-            // tooltip: {
-            //     formatter: function(param) {
-            //         param = param[0];
-            //         return [
-            //             'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
-            //             'Open: ' + param.data[0] + '<br/>',
-            //             'Close: ' + param.data[1] + '<br/>',
-            //             'Lowest: ' + param.data[2] + '<br/>',
-            //             'Highest: ' + param.data[3] + '<br/>'
-            //         ].join('');
-            //     }
-            // }
+            }
         },
         {
             name: 'MA5',

@@ -79,14 +79,6 @@ var option = {
         left: '10%',
         data: ['Dow-Jones index', 'MA5', 'MA10', 'MA20', 'MA30', 'Volumn', 'Volumn2']
     },
-    toolbox: {
-        feature: {
-            magicType: { show: true, type: ['line', 'bar'] },
-            restore: { show: true }
-        },
-        top: '1%',
-        right: '4%'
-    },
     tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -100,7 +92,8 @@ var option = {
             color: '#000'
         },
         triggerOn: 'none',
-        extraCssText: 'width: 170px'
+        extraCssText: 'width: 170px',
+        show: false
     },
     axisPointer: {
         link: { xAxisIndex: 'all' },
@@ -319,10 +312,15 @@ myChart.on('dblclick', function(params) {
         option.xAxis[2].axisPointer = axisPointer;
         option.yAxis[_yIndex].axisPointer = yxisPointer;
         option.dataZoom[0].end = _zomEnd;
-        _hasAxisPointer = true;
+        // _hasAxisPointer = true;
+        // myChart.setOption(option);
+        // var dataPara = getPintData(_dateIndex);
+        // openBox(dataPara);
+
+        option.tooltip.triggerOn = 'mousemove';
+        console.log();
         myChart.setOption(option);
-        var dataPara = getPintData(_dateIndex);
-        openBox(dataPara);
+        _hasAxisPointer = true;
     } else {
         var axisPointer = {
             value: null,
@@ -339,9 +337,13 @@ myChart.on('dblclick', function(params) {
         option.xAxis[2].axisPointer = axisPointer;
         option.yAxis[_yIndex].axisPointer = yxisPointer;
         option.dataZoom[0].end = _zomEnd;
-        _hasAxisPointer = false;
+        // _hasAxisPointer = false;
+        // myChart.setOption(option);
+        // openBox('');
+        option.tooltip.triggerOn = 'none';
+        console.log(option);
         myChart.setOption(option);
-        openBox('');
+        _hasAxisPointer = false;
     }
     return false;
 });

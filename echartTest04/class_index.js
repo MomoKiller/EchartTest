@@ -1,15 +1,14 @@
 var main = {
     // 全局对象
-    _loopBox: '',
-    _myChart: '',
-    _data: [],
-    _selDate: '',
-    _xIndex: 0, // x轴索引
-    _hasAxisPointer: false, // 是否有坐标轴
-    _seriesName: '',
-    _option: {},
+    _myChart: '', // ECHARTS 实例对象
+    _data: [], // 数据对象
+    _hasAxisPointer: false, // 点击是否给了坐标
+    _option: {}, // ECHARTS option
+    _helfLen: 0, // X轴半长
+    _loopBox: '', // 模拟弹框
     _zomEnd: 100, // 缩放最大比例
-    _helfLen: 0, // 表格X轴折半长度
+    _xIndex: 0, // x轴索引
+    _yData: 0, // y轴值
     init: (domSelector) => {
         var _this = main;
         // 全局变量
@@ -65,17 +64,10 @@ var main = {
         _this._option = {
             backgroundColor: '#eee',
             animation: false,
-            // tooltip: {
-            //     show: true,
-            //     trigger: 'axis'
-            // },
             tooltip: { 
                 trigger: 'axis',
-                 axisPointer: {
-                    type: 'cross'
-                },
                 formatter: function(params) {
-                    console.log(params);
+                    // console.log(params);
                 }
             },
             axisPointer: {
@@ -116,17 +108,7 @@ var main = {
                     splitLine: { show: false },
                     splitNumber: 20,
                     min: 'dataMin',
-                    max: 'dataMax',
-                    // axisPointer: {
-                    //     link: { xAxisIndex: 'all' },
-                    //     label: {
-                    //         backgroundColor: '#777'
-                    //     },
-                    //     triggerTooltip: false,
-                    //     value: '',
-                    //     status: 'show',
-                    //     triggerOn: 'mousemove' // 是否出坐标线
-                    // }
+                    max: 'dataMax'
                 },
                 {
                     type: 'category',
@@ -134,23 +116,13 @@ var main = {
                     data: _this._data.categoryData,
                     scale: true,
                     boundaryGap: false,
-                    axisLine: { onZero: false },
-                    axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisLabel: { show: false },
+                    // axisLine: { onZero: false },
+                    // axisTick: { show: false },
+                    // splitLine: { show: false },
+                    // axisLabel: { show: false },
                     splitNumber: 20,
                     min: 'dataMin',
-                    max: 'dataMax',
-                    // axisPointer: {
-                    //     link: { xAxisIndex: 'all' },
-                    //     label: {
-                    //         backgroundColor: '#777'
-                    //     },
-                    //     triggerTooltip: false,
-                    //     value: '',
-                    //     status: 'show',
-                    //     triggerOn: 'mousemove' // 是否出坐标线
-                    // }
+                    max: 'dataMax'
                 },
                 {
                     type: 'category',
@@ -158,57 +130,47 @@ var main = {
                     data: _this._data.categoryData,
                     scale: true,
                     boundaryGap: false,
-                    axisLine: { onZero: false },
-                    axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisLabel: { show: false },
+                    // axisLine: { onZero: false },
+                    // axisTick: { show: false },
+                    // splitLine: { show: false },
+                    // axisLabel: { show: false },
                     splitNumber: 20,
                     min: 'dataMin',
-                    max: 'dataMax',
-                    // axisPointer: {
-                    //     link: { xAxisIndex: 'all' },
-                    //     label: {
-                    //         backgroundColor: '#777'
-                    //     },
-                    //     triggerTooltip: false,
-                    //     value: '',
-                    //     status: 'show',
-                    //     triggerOn: 'mousemove' // 是否出坐标线
-                    // }
+                    max: 'dataMax'
                 }
             ],
             yAxis: [{
                     scale: true,
                     // splitArea: { show: true }
+                    axisPointer: {
+                        label: {
+                            backgroundColor: '#777'
+                        },
+                        show: false,
+                        triggerTooltip: false,
+                        value: '',
+                        status: 'show',
+                        triggerOn: 'mousemove'
+                    }
                 },
                 {
                     scale: true,
                     gridIndex: 1,
-                    axisLabel: { show: false },
-                    axisLine: { show: false },
-                    axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisPointer: {
-                        link: { xAxisIndex: 'all' },
-                        label: {
-                            backgroundColor: '#777'
-                        },
-                        triggerTooltip: false,
-                        value: '',
-                        status: 'show',
-                        triggerOn: 'mousemove' // 是否出坐标线
-                    }
+                    // axisLabel: { show: false },
+                    // axisLine: { show: false },
+                    // axisTick: { show: false },
+                    // splitLine: { show: false }
                 },
                 {
                     scale: true,
                     gridIndex: 2,
                     // splitNumber: 1,
-                    axisLabel: { show: false },
-                    axisLine: { show: false },
-                    axisTick: { show: false }
+                    // axisLabel: { show: false },
+                    // axisLine: { show: false },
+                    // axisTick: { show: false }
                 }
             ],
-            dataZoom: [{
+            dataZoom: [{ // 缩放
                     type: 'inside',
                     xAxisIndex: [0, 1, 2],
                     start: 0,
@@ -227,7 +189,7 @@ var main = {
                 }
             ],
             series: [{
-                    name: 'Dow-Jones index',
+                    name: 'Dow-Jones',
                     type: 'candlestick',
                     data: _this._data.values,
                     itemStyle: {
@@ -379,31 +341,47 @@ var main = {
         var _this = main;
         // 双击事件
         console.log('abc', _this._myChart);
-        _this._myChart.dispatchAction({
-            type: 'showTip',
-            x: 0,
-            y: 0
+        setInterval(() => {
+            _this._myChart.dispatchAction({
+                type: 'showTip',
+                seriesIndex: 0,
+                x: 0,
+                y: 0
+            });
+        }, 500);
+
+        // 单击事件-获取Y轴值
+        _this._myChart.on('click', (param) => {
+            _this._yData = param.value;
         });
 
+        /**
+         * 双击事件
+         * params: echarts 事件返回值
+         */
         _this._myChart.getZr().on('dblclick', (params) => {
+            console.log(params);
             var pointInPixel = [params.offsetX, params.offsetY];
-
-
-
             var pointInGrid = _this._myChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
-
             _this._xIndex = pointInGrid[0];
-            var xIndex = _this._option.xAxis[0].data[_this._xIndex];
+            var xData = _this._option.xAxis[0].data[_this._xIndex];
 
             if (!_this._hasAxisPointer) {
 
                 _this._option.axisPointer.show = true;
-                _this._option.axisPointer.value = xIndex;
-                _this._option.yAxis[1].axisPointer.show = true;
-                _this._option.yAxis[1].axisPointer.value = _this._data.values[_this._xIndex];
+                _this._option.axisPointer.value = xData;
+                // debugger
+                // if (_this._yData) {
+                // }
+                // 去y轴数据并赋值
+                _this._option.yAxis[0].axisPointer.show = true;
+                _this._option.yAxis[0].axisPointer.value = 16000;
+
+                // _this._option.tooltip.axisPointer.show = true;
+                // _this._option.tooltip.axisPointer.value = 16000;
 
 
-                _this._option.dataZoom[0].end = _this._zomEnd;
+                _this._option.dataZoom[0].end = _this._zomEnd; // 缩放
                 _this._myChart.setOption(_this._option);
                 _this._hasAxisPointer = true;
                 var dataPara = _this.getXYArr(_this._xIndex);
@@ -411,9 +389,8 @@ var main = {
             } else {
 
                 _this._option.axisPointer.show = false;
-                // _this._option.axisPointer.value = xIndex;
-                _this._option.yAxis[1].axisPointer.show = false;
-                // _this._option.yAxis[1].axisPointer.value = _this._data.values[_this._xIndex];
+                _this._option.yAxis[0].axisPointer.show = false;
+                // _this._option.tooltip.axisPointer.show = false;
 
                 _this._myChart.setOption(_this._option);
                 _this._hasAxisPointer = false;
@@ -429,7 +406,6 @@ var main = {
                 if (_this._xIndex > 0) {
                     _this._xIndex--;
                     _this._option.axisPointer.value = _this._data.categoryData[_this._xIndex];
-                    console.log(_this._option.axisPointer.value);
                     _this._myChart.setOption(_this._option);
                     var paramData = _this.getXYArr(_this._xIndex);
                     _this.openBox(paramData);
@@ -441,13 +417,9 @@ var main = {
                 if (_this._xIndex < (dataLenth - 1)) {
                     _this._xIndex++;
                     _this._option.axisPointer.value = _this._data.categoryData[_this._xIndex];
-                    console.log(_this._option.axisPointer.value);
-                    console.log(_this._option);
 
                     _this._myChart.setOption(_this._option, false, true);
                     console.log(_this._myChart.getOption());
-
-
 
                     var paramData = _this.getXYArr(_this._xIndex);
                     _this.openBox(paramData);
@@ -478,7 +450,6 @@ var main = {
         // 鼠标滑出 canvas
         _this._myChart.getZr().on('globalout', () => {
             _this._loopBox.style.display = 'none';
-
         });
     }
 };

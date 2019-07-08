@@ -67,11 +67,12 @@ var main = {
             animation: false,
             tooltip: { 
                 trigger: 'axis',
+                axisPointer: {
+                    // type: 'cross',
+                    snap: true,
+                    show: false
+                },
                 formatter: (params) => {
-                    // if (timeer)
-                    //     clearTimeout(timeer);
-                    // var timeer = setTimeout(() => { // 数据节流
-                    // }, 500);
                     var param = [];
                     params.map((item, index) => {
                         param.push({
@@ -81,18 +82,18 @@ var main = {
                         });
                     })
                     _this.openBox(param); // 弹框
-                }
+                },
+                show: false
             },
             axisPointer: {
+                snap: true,
                 link: { xAxisIndex: 'all' },
                 label: {
                     backgroundColor: '#777'
                 },
-                show: false,
-                triggerTooltip: false,
-                value: null,
                 status: 'show',
-                triggerOn: 'mousemove'
+                show: false,
+                value: 'null'
             },
             grid: [{
                     left: '10%',
@@ -159,11 +160,8 @@ var main = {
                             backgroundColor: '#777'
                         },
                         show: false,
-                        triggerTooltip: false,
-                        value: null,
-                        status: 'show',
-                        triggerOn: 'mousemove'
-                    }
+                        value: null
+                    },
                 },
                 {
                     scale: true,
@@ -171,14 +169,28 @@ var main = {
                     axisLabel: { show: false },
                     axisLine: { show: false },
                     axisTick: { show: false },
-                    splitLine: { show: false }
+                    splitLine: { show: false },
+                    axisPointer: {
+                        label: {
+                            backgroundColor: '#777'
+                        },
+                        show: false,
+                        value: null
+                    }
                 },
                 {
                     scale: true,
                     gridIndex: 2,
                     axisLabel: { show: false },
                     axisLine: { show: false },
-                    axisTick: { show: false }
+                    axisTick: { show: false },
+                    axisPointer: {
+                        label: {
+                            backgroundColor: '#777'
+                        },
+                        show: false,
+                        value: null,
+                    }
                 }
             ],
             dataZoom: [{ // 缩放
@@ -292,25 +304,15 @@ var main = {
     calculateMA: (dayCount, data) => {
         var result = [];
         for (var i = 0, len = data.values.length; i < len; i++) {
-            // if (i < dayCount) {
-            //     result.push('-');
-            //     continue;
-            // }
-            // var sum = 0;
-            // for (var j = 0; j < dayCount; j++) {
-            //     sum += data.values[i - j][1];
-            // }
-            // result.push(+(sum / dayCount).toFixed(3));
-
-            var sum = 0;
             if (i < dayCount) {
-                for (var j = 0; j < 4; j++) {
-                    sum += data.values[i][j];
-                }
-                result.push(sum / 4);
-            } else {
-                result.push(data.values[i][0]);
+                result.push('-');
+                continue;
             }
+            var sum = 0;
+            for (var j = 0; j < dayCount; j++) {
+                sum += data.values[i - j][1];
+            }
+            result.push(+(sum / dayCount).toFixed(3));
         }
         return result;
     },
@@ -322,7 +324,7 @@ var main = {
         var _this = main;
         _this._helfLen = Math.floor(_this._data.categoryData.length * (_this._zomEnd / 100) / 2);
         if (params && params.length) {
-            var _xIndex = _this._data.categoryData.indexOf(params[1].xData);
+            var _xIndex = _this._data.categoryData.indexOf(params[0].xData);
             var tempHtml = '<ul>';
             params.map((item) => {
                 tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
@@ -358,6 +360,60 @@ var main = {
         }
         return xyArr;
     },
+    /**
+     * socket 链接
+     */
+    connect: () => {
+        var serverUrl = "ws://" + window.location.hostname + ":6502";
+        var connection = new WebSocket(serverUrl);
+        connection.onopen = (evt) => {};
+        connection.onmessage = (evt) => {
+            // 从服务端接受到的消息
+            var msg = JSON.parse(evt.data);
+
+        }
+    },
+    /**
+     * 获取axiPoint坐标
+     */
+    getPoint: (params) => {
+        var _this = main;
+        var pointInPixel = [params.offsetX, params.offsetY];
+        var op = _this._myChart.getOption();
+        if (!_this._hasAxisPointer) {
+            for (var i = 0; i < 3; i++) {
+                if (_this._myChart.containPixel({ gridIndex: i }, pointInPixel)) {
+                    var yData = _this._myChart.convertFromPixel({ gridIndex: i }, pointInPixel)[1]; // y轴值
+                    _this._option.yAxis[i].axisPointer.value = yData;
+                }
+                _this._option.yAxis[i].axisPointer.show = true;
+            }
+            _this._xIndex = _this._myChart.convertFromPixel({ gridIndex: 0 }, pointInPixel)[0];
+            var xData = op.xAxis[0].data[_this._xIndex]; // x轴值
+            _this._option.axisPointer.show = true; // y轴线显示隐藏
+            _this._option.axisPointer.value = xData;
+
+            _this._option.tooltip.show = true; // x轴线显示隐藏
+            _this._option.dataZoom[0].end = _this._zomEnd;
+            _this._option.dataZoom[1].end = _this._zomEnd;
+            var param = _this.getXYArr(_this._xIndex);
+
+            _this.openBox(param);
+            _this._hasAxisPointer = true;
+        } else {
+
+            _this._option.yAxis.map((ietm, index) => {
+                _this._option.yAxis[index].axisPointer.show = false;
+                _this._option.yAxis[index].axisPointer.value = null;
+            })
+
+            _this._option.axisPointer.show = false;
+            _this._option.tooltip.show = false;
+            _this.openBox();
+            _this._hasAxisPointer = false;
+        }
+        _this._myChart.setOption(_this._option);
+    },
     bindEvents: () => {
         var _this = main;
         /**
@@ -365,32 +421,14 @@ var main = {
          * params: echarts 事件返回值
          */
         _this._myChart.getZr().on('dblclick', (params) => {
-            var pointInPixel = [params.offsetX, params.offsetY];
-            var op = _this._myChart.getOption();
-            if (_this._myChart.containPixel('grid', pointInPixel)) {
-                _this._xIndex = _this._myChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel)[0];
-                var xData = op.xAxis[0].data[_this._xIndex]; // x轴值
-                var yData = _this._myChart.convertFromPixel({ gridIndex: 0 }, pointInPixel)[1]; // y轴值
-            }
-
-            if (!_this._hasAxisPointer) {
-                _this._option.axisPointer.show = true;
-                _this._option.axisPointer.value = xData;
-                _this._option.yAxis[0].axisPointer.show = true;
-                _this._option.yAxis[0].axisPointer.value = yData;
-                _this._option.dataZoom[0].end = _this._zomEnd; // 缩放
-                _this._myChart.setOption(_this._option);
-                _this._hasAxisPointer = true;
-                var dataPara = _this.getXYArr(_this._xIndex); // 
-                _this.openBox(dataPara);
-            } else {
-                _this._option.axisPointer.show = false;
-                _this._option.yAxis[0].axisPointer.show = false;
-                _this._myChart.setOption(_this._option);
-                _this._hasAxisPointer = false;
-                _this.openBox();
-            }
+            _this.getPoint(params);
             return false;
+        });
+        /**
+         * 鼠标滑出 canvas 关闭弹框
+         */
+        _this._myChart.getZr().on('globalout', () => {
+            _this._loopBox.style.display = 'none';
         });
         /**
          *  键盘事件
@@ -399,30 +437,32 @@ var main = {
             var e = event || window.event || arguments.callee.caller.arguments[0];
             var dataLenth = _this._data.categoryData.length;
             var curentLen = _this._data.categoryData.length * (_this._zomEnd / 100);
+            var op = _this._myChart.getOption();
+            var xData = 0;
             if (e && e.keyCode == 37) { // 键盘-左
                 if (_this._xIndex > 0) {
                     _this._xIndex--;
-                    _this._option.axisPointer.value = _this._data.categoryData[_this._xIndex];
+                    xData = op.xAxis[0].data[_this._xIndex];
+                    _this._option.axisPointer.value = xData;
+                    _this._myChart.clear();
                     _this._myChart.setOption(_this._option);
                     var paramData = _this.getXYArr(_this._xIndex);
                     _this.openBox(paramData);
                 }
-                return false;
+                return false; // 阻止键盘默认事件
             }
             if (e && e.keyCode == 39) { // 键盘-右
                 if (_this._xIndex < (dataLenth - 1)) {
                     _this._xIndex++;
-                    if (_this._xIndex > curentLen) {
+                    xData = op.xAxis[0].data[_this._xIndex];
+                    if (_this._xIndex > curentLen) { // 索引大于grid表格x轴长度
                         _this._zomEnd += 10;
                         _this._option.dataZoom[0].end = _this._zomEnd;
                         _this._option.dataZoom[1].end = _this._zomEnd;
                     }
-                    // var op = _this._myChart.getOption();
-                    // op.axisPointer[0].value = _this._data.categoryData[_this._xIndex];
-                    // _this._myChart.setOption(op);
-                    _this._option.axisPointer.value = _this._data.categoryData[_this._xIndex];
-                    _this._myChart.setOption(_this._option, false, true);
-                    console.log(_this._option);
+                    _this._option.axisPointer.value = xData;
+                    _this._myChart.clear();
+                    _this._myChart.setOption(_this._option);
                     var paramData = _this.getXYArr(_this._xIndex);
                     _this.openBox(paramData);
                 }
@@ -433,7 +473,7 @@ var main = {
                     _this._zomEnd -= 10;
                     _this._option.dataZoom[0].end = _this._zomEnd;
                     _this._option.dataZoom[1].end = _this._zomEnd;
-                    _this._myChart.setOption(_this._option);
+                    _this._myChart.setOption(_this._option, false, true);
                 }
                 return false;
             }
@@ -442,17 +482,11 @@ var main = {
                     _this._zomEnd += 10;
                     _this._option.dataZoom[0].end = _this._zomEnd;
                     _this._option.dataZoom[1].end = _this._zomEnd;
-                    _this._myChart.setOption(_this._option);
+                    _this._myChart.setOption(_this._option, false, true);
                 }
-                return false; // 阻止键盘默认事件
+                return false;
             }
         };
-        /**
-         * 鼠标滑出 canvas 关闭弹框
-         */
-        _this._myChart.getZr().on('globalout', () => {
-            _this._loopBox.style.display = 'none';
-        });
     }
 };
 

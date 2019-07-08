@@ -171,20 +171,14 @@ var main = {
                     axisLabel: { show: false },
                     axisLine: { show: false },
                     axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisPointer: {
-                        show: false
-                    }
+                    splitLine: { show: false }
                 },
                 {
                     scale: true,
                     gridIndex: 2,
                     axisLabel: { show: false },
                     axisLine: { show: false },
-                    axisTick: { show: false },
-                    axisPointer: {
-                        show: false
-                    }
+                    axisTick: { show: false }
                 }
             ],
             dataZoom: [{ // 缩放

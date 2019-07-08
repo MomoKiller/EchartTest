@@ -487,6 +487,12 @@ var main = {
                 return false;
             }
         };
+        /**
+         * 窗口大小改变，重绘Echarts
+         */
+        window.onresize(() => {
+            console.log(window.clientInformation);
+        });
     }
 };
 

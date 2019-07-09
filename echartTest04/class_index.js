@@ -8,21 +8,22 @@ var main = {
     _zomEnd: 50, // 缩放最大比例
     _xIndex: 0, // x轴索引
     _yData: 0, // y轴值
+    _xDate: 0, // x轴值
+    _domSelector: '', // 挂载点选择器
     /**
-     * 初始化
+     * 初始化方法
      * domSelector: 加载Echarts的容器
      */
     init: (domSelector) => {
         var _this = main;
-        // 全局变量
+        _this._domSelector = domSelector; // 变量初始化
         _this._loopBox = document.querySelector('#modelBox');
         _this._myChart = echarts.init(document.querySelector(domSelector));
-        if (_this._loopBox == null) { // 页面无弹框容器->添加容器
-            _this._myChart.insertAdjacentHTML('afterend', '<div id="modelBox"></div>');
+        if (_this._loopBox == null) { // 无 tooltip 弹框容器
+            document.querySelector(domSelector).insertAdjacentHTML('afterend', '<div id="modelBox"></div>');
             _this._loopBox = document.querySelector('#modelBox');
         }
-        // 虚拟数据
-        var rawData = [
+        var rawData = [ // 虚拟数据
             ["2004-01-02", 10452.74, 10409.85, 10367.41, 10554.96, 168890000],
             ["2005-05-20", 10492.75, 10471.91, 10400.6, 10535.24, 232250000],
             ["2005-05-23", 10472.8, 10523.56, 10438.36, 10589.92, 225290000],
@@ -60,8 +61,108 @@ var main = {
             ["2014-07-09", 16916.83, 16985.61, 16913.81, 16998.95, 67120000]
         ].reverse();
 
-        _this._data = _this.splitData(rawData); // 最终得到的数据
+        _this._data = _this.splitData(rawData); // 获得数据
 
+        _this.formateEchart(); // 渲染Echarts
+
+        // _this.addGraphic(); // graphic组件
+        _this.formateLine(); // 线条
+
+        _this.bindEvents(); // 事件绑定
+
+        _this.switchEcharts(); // 切换图表
+    },
+    /**
+     * 线条
+     */
+    formateLine: () => {
+        var _this = main;
+        var op = _this._myChart.getOption();
+
+        console.log(op.series[2].markLine.data);
+    },
+    /**
+     * 切换图表
+     */
+    switchEcharts: () => {
+        var _this = main;
+        var op = _this._myChart.getOption();
+        var serices = op.series;
+        console.log(serices);
+        var domSwitch = document.querySelector('#switch');
+        domSwitch.onclick = (e) => {
+            var serIndex = e.target.getAttribute('data-index');
+            if (serIndex != null) {
+                // op.series[6] = {};
+                // op.series[6].data = op.series[serIndex].data;
+                // op.series[6].type = op.series[serIndex].type;
+                // op.series[6].name = op.series[serIndex].name;
+                // _this._myChart.setOption(op);
+            }
+        }
+    },
+    /**
+     * graphic 组件渲染
+     */
+    addGraphic: () => {
+        var _this = main;
+        _this._myChart.setOption({
+            graphic: echarts.util.map(_this._data, function(item, dataIndex) {
+                return {
+                    type: 'circle',
+                    position: _this._myChart.convertToPixel('grid', item),
+                    shape: {
+                        r: 10
+                    },
+                    invisible: true,
+                    draggable: true,
+                    ondrag: echarts.util.curry(onPointDragging, dataIndex),
+                    onmousemove: echarts.util.curry(showTooltip, dataIndex),
+                    onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+                    z: 100
+                };
+            })
+        });
+
+        window.addEventListener('resize', function() {
+            _this._myChart.setOption({
+                graphic: echarts.util.map(_this._data, function(item, dataIndex) {
+                    return {
+                        position: _this._myChart.convertToPixel('grid', item)
+                    };
+                })
+            });
+        });
+
+        function showTooltip(dataIndex) {
+            _this._myChart.dispatchAction({
+                type: 'showTip',
+                seriesIndex: 0,
+                dataIndex: dataIndex
+            });
+        }
+
+        function hideTooltip(dataIndex) {
+            _this._myChart.dispatchAction({
+                type: 'hideTip'
+            });
+        }
+
+        function onPointDragging(dataIndex, dx, dy) {
+            _this._data[dataIndex] = _this._myChart.convertFromPixel('grid', this.position);
+            _this._myChart.setOption({
+                series: [{
+                    id: 'a',
+                    data: _this._data
+                }]
+            });
+        }
+    },
+    /**
+     * 渲染Echarts
+     */
+    formateEchart: () => {
+        var _this = main;
         _this._option = {
             backgroundColor: '#eee',
             animation: false,
@@ -240,6 +341,27 @@ var main = {
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
+                    },
+                    markLine: {
+                        symbol: ['none', 'none'],
+                        lineStyle: {
+                            type: 'solid'
+                        },
+                        data: [
+                            [{
+                                    itemStyle: {
+                                        normal: {
+                                            show: true,
+                                            color: '#4c5336'
+                                        }
+                                    },
+                                    coord: ['2005-06-24', 17000] // 初始值
+                                },
+                                {
+                                    coord: ['2014-07-01', 14000] // 结束值
+                                }
+                            ],
+                        ]
                     }
                 },
                 {
@@ -276,10 +398,7 @@ var main = {
                 }
             ]
         };
-
         _this._myChart.setOption(_this._option);
-        // 事件绑定
-        _this.bindEvents();
     },
     /**
      * 数据拆分
@@ -489,10 +608,21 @@ var main = {
         };
         /**
          * 窗口大小改变，重绘Echarts
+         * resizeTimer: 重绘timeout
          */
-        window.onresize(() => {
-            console.log(window.clientInformation);
-        });
+        var resizeTimer = null;
+        window.onresize = () => {
+            if (resizeTimer) {
+                clearTimeout(resizeTimer);
+            }
+            resizeTimer = setTimeout(() => {
+                if (_this._myChart != '' && _this._myChart != null && _this._myChart != undefined) {
+                    _this._myChart.dispose(); // 销毁
+                    main.init(_this._domSelector);
+                }
+                resizeTimer = null;
+            }, 100);
+        };
     }
 };
 

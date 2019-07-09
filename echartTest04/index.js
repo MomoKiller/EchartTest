@@ -65,7 +65,7 @@ var main = {
 
         that.formateEchart(); // 渲染Echarts
 
-        that.addGraphic(); // graphic组件
+        // that.addGraphic(); // graphic组件
 
         that.bindEvents(); // 事件绑定
 
@@ -95,8 +95,9 @@ var main = {
      */
     addGraphic: () => {
         var that = main;
+        var op = that._myChart.getOption()
         that._myChart.setOption({
-            graphic: echarts.util.map(that._data, function(item, dataIndex) {
+            graphic: echarts.util.map(op.series.pop().data, function(item, dataIndex) {
                 return {
                     type: 'circle',
                     position: that._myChart.convertToPixel('grid', item),
@@ -113,15 +114,15 @@ var main = {
             })
         });
 
-        window.addEventListener('resize', function() {
-            that._myChart.setOption({
-                graphic: echarts.util.map(that._data, function(item, dataIndex) {
-                    return {
-                        position: that._myChart.convertToPixel('grid', item)
-                    };
-                })
-            });
-        });
+        // window.addEventListener('resize', function() {
+        //     that._myChart.setOption({
+        //         graphic: echarts.util.map(that._data, function(item, dataIndex) {
+        //             return {
+        //                 position: that._myChart.convertToPixel('grid', item)
+        //             };
+        //         })
+        //     });
+        // });
 
         function showTooltip(dataIndex) {
             that._myChart.dispatchAction({
@@ -147,44 +148,55 @@ var main = {
             });
         }
         // 添加
-        that._myChart.getZr().on('click', (params) => {
-            var pointInPixel = [params.offsetX, params.offsetY];
-            var op = that._myChart.getOption();
+        // that._myChart.getZr().on('click', (params) => {
+        //     var pointInPixel = [params.offsetX, params.offsetY];
+        //     var op = that._myChart.getOption();
 
-            var xData = that._myChart.convertFromPixel({
-                gridIndex: 0
-            }, pointInPixel)[0];
-            var yData = that._myChart.convertFromPixel({
-                gridIndex: 0
-            }, pointInPixel)[1]; // y轴值
+        //     var xData = that._myChart.convertFromPixel({
+        //         gridIndex: 0
+        //     }, pointInPixel)[0];
+        //     var yData = that._myChart.convertFromPixel({
+        //         gridIndex: 0
+        //     }, pointInPixel)[1]; // y轴值
 
-            data = op.series[0].data;
+        //     data = op.series[0].data;
 
-            data.push([xData, yData]);
+        //     data.push([xData, yData]);
 
-            that._myChart.setOption({
-                series: [{
-                    id: 'a',
-                    data: data
-                }],
-                graphic: echarts.util.map(data, function(item, dataIndex) {
-                    console.log(that._myChart.convertToPixel('grid', item));
-                    return {
-                        type: 'circle',
-                        position: that._myChart.convertToPixel('grid', item),
-                        shape: {
-                            r: 10
-                        },
-                        invisible: true,
-                        draggable: true,
-                        ondrag: echarts.util.curry(onPointDragging, dataIndex),
-                        onmousemove: echarts.util.curry(showTooltip, dataIndex),
-                        onmouseout: echarts.util.curry(hideTooltip, dataIndex),
-                        z: 100
-                    };
-                })
-            });
-        })
+        //     if (JSON.stringify(op.series[0].data) == '[]') { // 第一个未赋值
+        //         data = op.series[0].data;
+        //         data.push([xData, yData]);
+        //     } else {
+        //         var param = [];
+        //         param.push([xData, yData]);
+        //         var paramSeries = JSON.parse(JSON.stringify(op.series[0]));
+        //         paramSeries.data = param;
+        //         op.series.push(paramSeries)
+        //     }
+        //     console.log(op.series);
+
+        //     that._myChart.setOption({
+        //         series: [{
+        //             data: data
+        //         }],
+        //         graphic: echarts.util.map(data, function(item, dataIndex) {
+        //             console.log(that._myChart.convertToPixel('grid', item));
+        //             return {
+        //                 type: 'circle',
+        //                 position: that._myChart.convertToPixel('grid', item),
+        //                 shape: {
+        //                     r: 10
+        //                 },
+        //                 invisible: true,
+        //                 draggable: true,
+        //                 ondrag: echarts.util.curry(onPointDragging, dataIndex),
+        //                 onmousemove: echarts.util.curry(showTooltip, dataIndex),
+        //                 onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+        //                 z: 100
+        //             };
+        //         })
+        //     });
+        // })
     },
     /**
      * 渲染Echarts

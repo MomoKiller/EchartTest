@@ -3,14 +3,21 @@
 
 <head>
     <meta charset="utf-8">
-    <script src="./dist/echarts.js"></script>
+    <script src="http://echarts.baidu.com/dist/echarts.min.js"></script>
 </head>
 
 <body>
     <div id="main" style="width: 600px;height:400px;"></div>
     <script type="text/javascript">
         var symbolSize = 20;
-        var data = [];
+        var data = [
+            [15, 0],
+            [-50, 10],
+            [-56.5, 20],
+            [-46.5, 30],
+            [-22.1, 40]
+        ];
+        // var data = [];
 
         var myChart = echarts.init(document.getElementById('main'));
 
@@ -45,55 +52,11 @@
                 data: data
             }],
         });
-        // 添加
-        myChart.getZr().on('click', (params) => {
-            var pointInPixel = [params.offsetX, params.offsetY];
-            var op = myChart.getOption();
-
-            var xData = myChart.convertFromPixel({
-                gridIndex: 0
-            }, pointInPixel)[0];
-            var yData = myChart.convertFromPixel({
-                gridIndex: 0
-            }, pointInPixel)[1]; // y轴值
-
-            console.log(op.series.length);
-            if (JSON.stringify(op.series[0].data) == '[]') { // 第一个未赋值
-                data = op.series[0].data;
-                data.push([xData, yData]);
-            } else {
-                var param = [];
-                param.push([xData, yData]);
-                var paramSeries = JSON.parse(JSON.stringify(op.series[0]));
-                paramSeries.data = param;
-                op.series.push(paramSeries)
-            }
-
-            console.log(op.series);
-            myChart.setOption({
-                series: op.series,
-                graphic: echarts.util.map(data, function(item, dataIndex) {
-                    return {
-                        type: 'circle',
-                        position: myChart.convertToPixel('grid', item),
-                        shape: {
-                            r: symbolSize / 2
-                        },
-                        invisible: true,
-                        draggable: true,
-                        ondrag: echarts.util.curry(onPointDragging, dataIndex),
-                        onmousemove: echarts.util.curry(showTooltip, dataIndex),
-                        onmouseout: echarts.util.curry(hideTooltip, dataIndex),
-                        z: 100
-                    };
-                })
-            });
-        })
-
+        console.log(data);
         myChart.setOption({
             graphic: echarts.util.map(data, function(item, dataIndex) {
                 return {
-                    type: 'line',
+                    type: 'circle',
                     position: myChart.convertToPixel('grid', item),
                     shape: {
                         r: symbolSize / 2
@@ -134,13 +97,64 @@
 
         function onPointDragging(dataIndex, dx, dy) {
             data[dataIndex] = myChart.convertFromPixel('grid', this.position);
+            // var series = myChart.getOption().series;
             myChart.setOption({
                 series: [{
-                    id: 'a',
+                    // id: 'a',
                     data: data
                 }]
             });
         }
+
+        // 添加
+        myChart.getZr().on('click', (params) => {
+            var pointInPixel = [params.offsetX, params.offsetY];
+            var op = myChart.getOption();
+
+            var xData = myChart.convertFromPixel({
+                gridIndex: 0
+            }, pointInPixel)[0];
+            var yData = myChart.convertFromPixel({
+                gridIndex: 0
+            }, pointInPixel)[1]; // y轴值
+
+            if (JSON.stringify(op.series[0].data) == '[]') { // 第一个未赋值
+                data = op.series[0].data;
+                data.push([xData, yData]);
+            } else {
+                var param = [];
+                param.push([xData, yData]);
+                var paramSeries = JSON.parse(JSON.stringify(op.series[0]));
+                paramSeries.data = param;
+                op.series.push(paramSeries)
+            }
+            console.log(op.series.pop().data);
+
+            // data.push([xData, yData]);   // 单个数据
+
+            myChart.setOption({
+                series: op.series,
+                // series: {    // 单个数据
+                //     data: data
+                // },
+                graphic: echarts.util.map([xData, yData], function(item, dataIndex) {
+                    return {
+                        type: 'circle',
+                        position: myChart.convertToPixel('grid', item),
+                        shape: {
+                            r: symbolSize / 2
+                        },
+                        invisible: true,
+                        draggable: true,
+                        ondrag: echarts.util.curry(onPointDragging, dataIndex),
+                        onmousemove: echarts.util.curry(showTooltip, dataIndex),
+                        onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+                        z: 100
+                    };
+                })
+            });
+        });
+        // 线条拖拽
     </script>
 </body>
 

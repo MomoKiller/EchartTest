@@ -38,7 +38,7 @@
                 }
             },
             series: [{
-                id: 'a',
+                // id: 'a',
                 type: 'line',
                 smooth: true,
                 symbolSize: symbolSize,
@@ -57,17 +57,22 @@
                 gridIndex: 0
             }, pointInPixel)[1]; // y轴值
 
-            data = op.series[0].data;
+            console.log(op.series.length);
+            if (JSON.stringify(op.series[0].data) == '[]') { // 第一个未赋值
+                data = op.series[0].data;
+                data.push([xData, yData]);
+            } else {
+                var param = [];
+                param.push([xData, yData]);
+                var paramSeries = JSON.parse(JSON.stringify(op.series[0]));
+                paramSeries.data = param;
+                op.series.push(paramSeries)
+            }
 
-            data.push([xData, yData]);
-
+            console.log(op.series);
             myChart.setOption({
-                series: [{
-                    id: 'a',
-                    data: data
-                }],
+                series: op.series,
                 graphic: echarts.util.map(data, function(item, dataIndex) {
-                    console.log(myChart.convertToPixel('grid', item));
                     return {
                         type: 'circle',
                         position: myChart.convertToPixel('grid', item),

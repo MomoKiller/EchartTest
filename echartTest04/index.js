@@ -2,7 +2,6 @@ var main = {
     _myChart: '', // ECHARTS 实例对象
     _data: [], // 数据对象
     _hasAxisPointer: false, // 点击是否给了坐标
-    _helfLen: 0, // X轴半长
     _loopBox: '', // 模拟弹框
     _zomStart: 50,
     _xIndex: 0, // x轴索引
@@ -135,7 +134,6 @@ var main = {
                 } else { // 给series 添加新的点
                     op.series[op.series.length - 1].data.push([xData, yData]);
                 }
-                console.log(op.series);
                 that._myChart.setOption({
                     series: op.series,
                     graphic: echarts.util.map(data, function(item, dataIndex) {
@@ -474,9 +472,10 @@ var main = {
      */
     openBox: (params) => {
         var that = main;
-        that._helfLen = Math.floor(that._data.categoryData.length * (1 - that._zomStart / 100) / 2);
+        var xLength = that._data.categoryData.length;
+        var helfLen = Math.floor(xLength * (1 + that._zomStart / 100) / 2);
         if (params && params.length) {
-            var _xIndex = that._data.categoryData.indexOf(params[0].xData);
+            var xIndex = that._data.categoryData.indexOf(params[0].xData);
             var tempHtml = '<ul>';
             params.map((item) => {
                 tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
@@ -484,7 +483,7 @@ var main = {
             tempHtml += '</ul>';
             that._loopBox.innerHTML = tempHtml;
             that._loopBox.style.display = 'block';
-            if (_xIndex < that._helfLen) {
+            if (xIndex < helfLen) {
                 that._loopBox.style.right = 0;
                 that._loopBox.style.left = '';
             } else {
@@ -590,11 +589,12 @@ var main = {
             var op = that._myChart.getOption();
             var xData = 0;
             if (e && e.keyCode == 37) { // 键盘-左
-                // if (that._xIndex > 0) {
                 if (that._xIndex > 0) {
                     that._xIndex--;
                     xData = op.xAxis[0].data[that._xIndex];
-                    op.axisPointer.value = xData;
+                    // 需要修改
+                    op.axisPointer[0].value = xData;
+
                     if (that._xIndex < helfLen) {
                         that._zomStart -= 10;
                         op.dataZoom[0].start = that._zomStart;
@@ -602,17 +602,17 @@ var main = {
                     }
                     that._myChart.clear();
                     that._myChart.setOption(op);
+
                     var paramData = that.getXYArr(that._xIndex);
                     that.openBox(paramData);
                 }
                 return false; // 阻止键盘默认事件
             }
             if (e && e.keyCode == 39) { // 键盘-右
-                // if (that._xIndex < (dataLenth - 1)) {
                 if (that._xIndex < (dataLenth - 1)) {
                     that._xIndex++;
                     xData = op.xAxis[0].data[that._xIndex];
-                    op.axisPointer.value = xData;
+                    op.axisPointer[0].value = xData;
                     that._myChart.clear();
                     that._myChart.setOption(op);
                     var paramData = that.getXYArr(that._xIndex);

@@ -52,7 +52,6 @@
                 data: data
             }],
         });
-        console.log(data);
         myChart.setOption({
             graphic: echarts.util.map(data, function(item, dataIndex) {
                 return {
@@ -96,11 +95,11 @@
         }
 
         function onPointDragging(dataIndex, dx, dy) {
+            console.log(dataIndex);
             data[dataIndex] = myChart.convertFromPixel('grid', this.position);
             // var series = myChart.getOption().series;
             myChart.setOption({
                 series: [{
-                    // id: 'a',
                     data: data
                 }]
             });
@@ -118,25 +117,12 @@
                 gridIndex: 0
             }, pointInPixel)[1]; // y轴值
 
-            if (JSON.stringify(op.series[0].data) == '[]') { // 第一个未赋值
-                data = op.series[0].data;
-                data.push([xData, yData]);
-            } else {
-                var param = [];
-                param.push([xData, yData]);
-                var paramSeries = JSON.parse(JSON.stringify(op.series[0]));
-                paramSeries.data = param;
-                op.series.push(paramSeries)
-            }
-            // console.log(op.series.pop().data);
-
-            // data.push([xData, yData]);   // 单个数据
+            data.push([xData, yData]); // 单个数据
 
             myChart.setOption({
-                series: op.series,
-                // series: {    // 单个数据
-                //     data: data
-                // },
+                series: { // 单个数据
+                    data: data
+                },
                 graphic: echarts.util.map(data, function(item, dataIndex) {
                     return {
                         type: 'circle',

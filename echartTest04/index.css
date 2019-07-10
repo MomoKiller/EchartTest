@@ -73,6 +73,14 @@ a {
     border: 2px solid #fff;
 }
 
+#switch ul li:hover {
+    color: #ee0000;
+}
+
+#switch ul li p {
+    color: #333333;
+}
+
 #switch ul li div {
     display: none;
     position: absolute;

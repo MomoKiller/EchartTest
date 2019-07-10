@@ -6,6 +6,7 @@ var main = {
     _helfLen: 0, // X轴半长
     _loopBox: '', // 模拟弹框
     _zomEnd: 50, // 缩放最大比例
+    _zomStart: 50,
     _xIndex: 0, // x轴索引
     _yData: 0, // y轴值
     _xDate: 0, // x轴值
@@ -77,18 +78,28 @@ var main = {
     switchEcharts: () => {
         var that = main;
         var op = that._myChart.getOption();
-        var serices = op.series;
-        var domSwitch = document.querySelector('#switch');
-        domSwitch.onclick = (e) => {
-            var serIndex = e.target.getAttribute('data-index');
-            if (serIndex != null) {
-                // op.series[6] = {};
-                // op.series[6].data = op.series[serIndex].data;
-                // op.series[6].type = op.series[serIndex].type;
-                // op.series[6].name = op.series[serIndex].name;
-                // that._myChart.setOption(op);
+        var domSwitch = document.querySelector('#switch ul');
+        var mapDtata = op.series;
+        domSwitch.addEventListener('click', (e) => {
+            if (e.target.getAttribute('data-index') != null) {
+                var domAll = document.querySelectorAll('#switch ul li p');
+                for (var i = 0; i < domAll.length; i++) {
+                    domAll[i].style.color = '#333333';
+                }
+                e.target.style.color = '#ee0000';
+                var serIndex = e.target.getAttribute('data-index');
+                var paramIndex = parseInt(e.target.parentNode.parentNode.getAttribute('data-li'));
+                op.series = op.series.filter((item, index) => { // 筛选
+                    return op.series[index].xAxisIndex != paramIndex;
+                });
+                op.series.push(JSON.parse(JSON.stringify(mapDtata[serIndex])));
+                op.series[op.series.length - 1].xAxisIndex = paramIndex;
+                op.series[op.series.length - 1].yAxisIndex = paramIndex;
+
+                that._myChart.clear();
+                that._myChart.setOption(op);
             }
-        }
+        });
     },
     /**
      * graphic 组件渲染
@@ -337,8 +348,10 @@ var main = {
             dataZoom: [{ // 缩放
                     type: 'inside',
                     xAxisIndex: [0, 1, 2],
-                    start: 0,
-                    end: that._zomEnd,
+                    // start: 0,
+                    // end: that._zomEnd,
+                    start: that._zomStart,
+                    end: 100,
                     zoomOnMouseWheel: false,
                     show: true
                 },
@@ -347,8 +360,10 @@ var main = {
                     xAxisIndex: [0, 1],
                     type: 'slider',
                     top: '85%',
-                    start: 0,
-                    end: that._zomEnd,
+                    // start: 0,
+                    // end: that._zomEnd,
+                    start: that._zomStart,
+                    end: 100,
                     zoomOnMouseWheel: false
                 }
             ],
@@ -363,7 +378,9 @@ var main = {
                             borderColor: null,
                             borderColor0: null
                         }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA5',
@@ -372,7 +389,9 @@ var main = {
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA10',
@@ -402,7 +421,9 @@ var main = {
                                 }
                             ],
                         ]
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA20',
@@ -411,7 +432,9 @@ var main = {
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA30',
@@ -420,7 +443,9 @@ var main = {
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'Volumn',
@@ -481,7 +506,8 @@ var main = {
      */
     openBox: (params) => {
         var that = main;
-        that._helfLen = Math.floor(that._data.categoryData.length * (that._zomEnd / 100) / 2);
+        // that._helfLen = Math.floor(that._data.categoryData.length * (that._zomEnd / 100) / 2);
+        that._helfLen = Math.floor(that._data.categoryData.length * (1 - that._zomStart / 100) / 2);
         if (params && params.length) {
             var _xIndex = that._data.categoryData.indexOf(params[0].xData);
             var tempHtml = '<ul>';
@@ -552,8 +578,10 @@ var main = {
             op.axisPointer[0].show = true; // y轴线显示隐藏
             op.axisPointer[0].value = xData;
             op.tooltip[0].show = true; // x轴线显示隐藏
-            op.dataZoom[0].end = that._zomEnd;
-            op.dataZoom[1].end = that._zomEnd;
+            // op.dataZoom[0].end = that._zomEnd;
+            // op.dataZoom[1].end = that._zomEnd;
+            op.dataZoom[0].start = that._zomStart;
+            op.dataZoom[1].start = that._zomStart;
             var param = that.getXYArr(that._xIndex);
 
             that.openBox(param);
@@ -592,14 +620,21 @@ var main = {
         document.onkeydown = (event) => {
             var e = event || window.event || arguments.callee.caller.arguments[0];
             var dataLenth = that._data.categoryData.length;
-            var curentLen = that._data.categoryData.length * (that._zomEnd / 100);
+            // var curentLen = that._data.categoryData.length * (that._zomEnd / 100);
+            var helfLen = Math.floor(that._data.categoryData.length * (1 - that._zomStart / 100) / 2);
             var op = that._myChart.getOption();
             var xData = 0;
             if (e && e.keyCode == 37) { // 键盘-左
+                // if (that._xIndex > 0) {
                 if (that._xIndex > 0) {
                     that._xIndex--;
                     xData = op.xAxis[0].data[that._xIndex];
                     op.axisPointer.value = xData;
+                    if (that._xIndex < helfLen) {
+                        that._zomStart -= 10;
+                        op.dataZoom[0].start = that._zomStart;
+                        op.dataZoom[1].start = that._zomStart;
+                    }
                     that._myChart.clear();
                     that._myChart.setOption(op);
                     var paramData = that.getXYArr(that._xIndex);
@@ -608,36 +643,52 @@ var main = {
                 return false; // 阻止键盘默认事件
             }
             if (e && e.keyCode == 39) { // 键盘-右
+                // if (that._xIndex < (dataLenth - 1)) {
                 if (that._xIndex < (dataLenth - 1)) {
                     that._xIndex++;
                     xData = op.xAxis[0].data[that._xIndex];
-                    if (that._xIndex > curentLen) { // 索引大于grid表格x轴长度
-                        that._zomEnd += 10;
-                        op.dataZoom[0].end = that._zomEnd;
-                        op.dataZoom[1].end = that._zomEnd;
-                    }
                     op.axisPointer.value = xData;
+                    // if (that._xIndex > curentLen) { // 索引大于grid表格x轴长度
+                    //     that._zomEnd += 10;
+                    //     op.dataZoom[0].end = that._zomEnd;
+                    //     op.dataZoom[1].end = that._zomEnd;
+                    // }
                     that._myChart.clear();
                     that._myChart.setOption(op);
                     var paramData = that.getXYArr(that._xIndex);
                     that.openBox(paramData);
                 }
+
                 return false;
             }
             if (e && e.keyCode == 38) { // 键盘-上
-                if (that._zomEnd > 30) {
-                    that._zomEnd -= 10;
-                    op.dataZoom[0].end = that._zomEnd;
-                    op.dataZoom[1].end = that._zomEnd;
+                // if (that._zomEnd > 30) {
+                //     that._zomEnd -= 10;
+                //     op.dataZoom[0].end = that._zomEnd;
+                //     op.dataZoom[1].end = that._zomEnd;
+                //     that._myChart.setOption(op, false, true);
+                // }
+
+                if (that._zomStart < 100) {
+                    that._zomStart += 10;
+                    op.dataZoom[0].start = that._zomStart;
+                    op.dataZoom[1].start = that._zomStart;
                     that._myChart.setOption(op, false, true);
                 }
+
                 return false;
             }
             if (e && e.keyCode == 40) { // 键盘-下
-                if (that._zomEnd <= 90) {
-                    that._zomEnd += 10;
-                    op.dataZoom[0].end = that._zomEnd;
-                    op.dataZoom[1].end = that._zomEnd;
+                // if (that._zomEnd <= 90) {
+                //     that._zomEnd += 10;
+                //     op.dataZoom[0].end = that._zomEnd;
+                //     op.dataZoom[1].end = that._zomEnd;
+                //     that._myChart.setOption(op, false, true);
+                // }
+                if (that._zomStart > 10) {
+                    that._zomStart -= 10;
+                    op.dataZoom[0].start = that._zomStart;
+                    op.dataZoom[1].start = that._zomStart;
                     that._myChart.setOption(op, false, true);
                 }
                 return false;

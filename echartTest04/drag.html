@@ -128,7 +128,7 @@
                 paramSeries.data = param;
                 op.series.push(paramSeries)
             }
-            console.log(op.series.pop().data);
+            // console.log(op.series.pop().data);
 
             // data.push([xData, yData]);   // 单个数据
 
@@ -137,7 +137,7 @@
                 // series: {    // 单个数据
                 //     data: data
                 // },
-                graphic: echarts.util.map([xData, yData], function(item, dataIndex) {
+                graphic: echarts.util.map(data, function(item, dataIndex) {
                     return {
                         type: 'circle',
                         position: myChart.convertToPixel('grid', item),

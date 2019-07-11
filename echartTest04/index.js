@@ -121,9 +121,9 @@ var main = {
                 var pointInPixel = [params.offsetX, params.offsetY];
                 var xData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
                 var yData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-                data = []; // 重置
-                data.push([xData, yData]); // graphic遍历的点坐标
                 if (isFirstDraw) { // 添加新data对象
+                    data = []; // 重置
+                    data.push([xData, yData]); // graphic遍历的点坐标
                     op.series.push({
                         data: data,
                         type: 'line',

@@ -104,6 +104,7 @@ var main = {
         var that = main;
         var op = that._myChart.getOption();
         var data = [];
+        // var allData = [];
         var isFirstDraw = true; // 是否第一次画点
         var tempGrid = { gridIndex: 0 }; // 第一象限
         var domDrawBtn = document.querySelector('#drawLine');
@@ -112,8 +113,7 @@ var main = {
         var onPointDragging = (dataIndex, dx, dy) => {
             var that = main;
             op.series[op.series.length - 1].data[dataIndex] = that._myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
-            // 获取数据的改变
-            that._myChart.setOption(op);
+            that._myChart.setOption(op); // 数据变更
         };
         // 添加坐标点
         that._myChart.getZr().on('click', (params) => {
@@ -121,9 +121,9 @@ var main = {
                 var pointInPixel = [params.offsetX, params.offsetY];
                 var xData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
                 var yData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-                if (isFirstDraw) { // 首次画点 series 对象
-                    data = []; // 重置
-                    data.push([xData, yData]); // graphic遍历的点坐标
+                data = []; // 重置
+                data.push([xData, yData]); // graphic遍历的点坐标
+                if (isFirstDraw) { // 添加新data对象
                     op.series.push({
                         data: data,
                         type: 'line',
@@ -134,6 +134,7 @@ var main = {
                 } else { // 给series 添加新的点
                     op.series[op.series.length - 1].data.push([xData, yData]);
                 }
+                // allData.push([xData, yData]);
                 that._myChart.setOption({
                     series: op.series,
                     graphic: echarts.util.map(data, function(item, dataIndex) {
@@ -150,6 +151,7 @@ var main = {
                         };
                     })
                 });
+
                 isFirstDraw = false;
             }
         });
@@ -446,7 +448,6 @@ var main = {
      * params: x轴对应的所有y轴数据
      */
     openBox: (params) => {
-        console.log(params);
         var that = main;
         var xLength = that._data.categoryData.length;
         var helfLen = Math.floor(xLength * (1 + that._zomStart / 100) / 2);
@@ -638,10 +639,11 @@ var main = {
             }
             resizeTimer = setTimeout(() => {
                 if (that._myChart != '' && that._myChart != null && that._myChart != undefined) {
-                    var op = that._myChart.getOption();
-                    that._myChart.dispose(); // 销毁
-                    that._myChart = echarts.init(document.querySelector(that._domSelector));
-                    that._myChart.setOption(op);
+                    // var op = that._myChart.getOption();
+                    // that._myChart.dispose(); // 销毁
+                    // that._myChart = echarts.init(document.querySelector(that._domSelector));
+                    // that._myChart.setOption(op);
+                    that._myChart.resize();
                 }
                 resizeTimer = null;
             }, 100);

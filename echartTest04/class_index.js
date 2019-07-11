@@ -2,26 +2,23 @@ var main = {
     _myChart: '', // ECHARTS 实例对象
     _data: [], // 数据对象
     _hasAxisPointer: false, // 点击是否给了坐标
-    _option: {}, // ECHARTS option
-    _helfLen: 0, // X轴半长
     _loopBox: '', // 模拟弹框
-    _zomEnd: 50, // 缩放最大比例
+    _zomStart: 50,
     _xIndex: 0, // x轴索引
-    _yData: 0, // y轴值
-    _xDate: 0, // x轴值
     _domSelector: '', // 挂载点选择器
+    _isDrawAllow: false, // 是否让画点
     /**
      * 初始化方法
      * domSelector: 加载Echarts的容器
      */
     init: (domSelector) => {
-        var _this = main;
-        _this._domSelector = domSelector; // 变量初始化
-        _this._loopBox = document.querySelector('#modelBox');
-        _this._myChart = echarts.init(document.querySelector(domSelector));
-        if (_this._loopBox == null) { // 无 tooltip 弹框容器
+        var that = main;
+        that._domSelector = domSelector; // 变量初始化
+        that._loopBox = document.querySelector('#modelBox');
+        that._myChart = echarts.init(document.querySelector(domSelector));
+        if (that._loopBox == null) { // 无 tooltip 弹框容器
             document.querySelector(domSelector).insertAdjacentHTML('afterend', '<div id="modelBox"></div>');
-            _this._loopBox = document.querySelector('#modelBox');
+            that._loopBox = document.querySelector('#modelBox');
         }
         var rawData = [ // 虚拟数据
             ["2004-01-02", 10452.74, 10409.85, 10367.41, 10554.96, 168890000],
@@ -61,117 +58,142 @@ var main = {
             ["2014-07-09", 16916.83, 16985.61, 16913.81, 16998.95, 67120000]
         ].reverse();
 
-        _this._data = _this.splitData(rawData); // 获得数据
+        that._data = that.splitData(rawData); // 获得数据
 
-        _this.formateEchart(); // 渲染Echarts
+        that.formateEchart(); // 渲染Echarts
 
-        // _this.addGraphic(); // graphic组件
-        _this.formateLine(); // 线条
+        that.addGraphic(); // graphic组件
 
-        _this.bindEvents(); // 事件绑定
+        that.bindEvents(); // 事件绑定
 
-        _this.switchEcharts(); // 切换图表
-    },
-    /**
-     * 线条
-     */
-    formateLine: () => {
-        var _this = main;
-        var op = _this._myChart.getOption();
-
-        console.log(op.series[2].markLine.data);
+        that.switchEcharts(); // 切换图表
     },
     /**
      * 切换图表
      */
     switchEcharts: () => {
-        var _this = main;
-        var op = _this._myChart.getOption();
-        var serices = op.series;
-        console.log(serices);
-        var domSwitch = document.querySelector('#switch');
-        domSwitch.onclick = (e) => {
-            var serIndex = e.target.getAttribute('data-index');
-            if (serIndex != null) {
-                // op.series[6] = {};
-                // op.series[6].data = op.series[serIndex].data;
-                // op.series[6].type = op.series[serIndex].type;
-                // op.series[6].name = op.series[serIndex].name;
-                // _this._myChart.setOption(op);
+        var that = main;
+        var op = that._myChart.getOption();
+        var domSwitch = document.querySelector('#switch ul');
+        var mapDtata = op.series;
+        domSwitch.addEventListener('click', (e) => {
+            if (e.target.getAttribute('data-index') != null) {
+                var domAll = document.querySelectorAll('#switch ul li p');
+                for (var i = 0; i < domAll.length; i++) {
+                    domAll[i].style.color = '#333333';
+                }
+                e.target.style.color = '#ee0000';
+                var serIndex = e.target.getAttribute('data-index');
+                var paramIndex = parseInt(e.target.parentNode.parentNode.getAttribute('data-li'));
+                op.series = op.series.filter((item, index) => { // 筛选
+                    return op.series[index].xAxisIndex != paramIndex;
+                });
+                op.series.push(JSON.parse(JSON.stringify(mapDtata[serIndex])));
+                op.series[op.series.length - 1].xAxisIndex = paramIndex;
+                op.series[op.series.length - 1].yAxisIndex = paramIndex;
+
+                that._myChart.clear();
+                that._myChart.setOption(op);
             }
-        }
+        });
     },
     /**
      * graphic 组件渲染
      */
     addGraphic: () => {
-        var _this = main;
-        _this._myChart.setOption({
-            graphic: echarts.util.map(_this._data, function(item, dataIndex) {
-                return {
-                    type: 'circle',
-                    position: _this._myChart.convertToPixel('grid', item),
-                    shape: {
-                        r: 10
-                    },
-                    invisible: true,
-                    draggable: true,
-                    ondrag: echarts.util.curry(onPointDragging, dataIndex),
-                    onmousemove: echarts.util.curry(showTooltip, dataIndex),
-                    onmouseout: echarts.util.curry(hideTooltip, dataIndex),
-                    z: 100
-                };
+        var that = main;
+        var op = that._myChart.getOption();
+        var data = [];
+        // var allData = [];
+        var isFirstDraw = true; // 是否第一次画点
+        var tempGrid = { gridIndex: 0 }; // 第一象限
+        var domDrawBtn = document.querySelector('#drawLine');
+        var domClearBtn = document.querySelector('#delLine');
+        var domRedrawBtn = document.querySelector('#reDraw');
+        var onPointDragging = (dataIndex, dx, dy) => {
+            var that = main;
+            op.series[op.series.length - 1].data[dataIndex] = that._myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
+            that._myChart.setOption(op); // 数据变更
+        };
+        // 添加坐标点
+        that._myChart.getZr().on('click', (params) => {
+            if (that._isDrawAllow) { // 是否能画点
+                var pointInPixel = [params.offsetX, params.offsetY];
+                var xData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
+                var yData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
+                data = []; // 重置
+                data.push([xData, yData]); // graphic遍历的点坐标
+                if (isFirstDraw) { // 添加新data对象
+                    op.series.push({
+                        data: data,
+                        type: 'line',
+                        smooth: true,
+                        symbolSize: 20,
+                        name: 'theLine' // 用name属性区分是否画线
+                    })
+                } else { // 给series 添加新的点
+                    op.series[op.series.length - 1].data.push([xData, yData]);
+                }
+                // allData.push([xData, yData]);
+                that._myChart.setOption({
+                    series: op.series,
+                    graphic: echarts.util.map(data, function(item, dataIndex) {
+                        return {
+                            type: 'circle',
+                            position: that._myChart.convertToPixel('grid', item),
+                            shape: {
+                                r: 10
+                            },
+                            invisible: true,
+                            draggable: true,
+                            ondrag: echarts.util.curry(onPointDragging, dataIndex),
+                            z: 100
+                        };
+                    })
+                });
+
+                isFirstDraw = false;
+            }
+        });
+        // 控制是否可画线
+        domDrawBtn.onclick = () => {
+            that._isDrawAllow = !that._isDrawAllow; // 是否让画线
+            if (that._isDrawAllow) {
+                domDrawBtn.style.color = '#ee0000';
+                isFirstDraw = true;
+            } else {
+                domDrawBtn.style.color = '#333333';
+            }
+        };
+        // 重新画线
+        domRedrawBtn.onclick = () => {
+            isFirstDraw = true;
+            that._isDrawAllow = true;
+            domDrawBtn.style.color = '#333333';
+        };
+        // 清除线条
+        domClearBtn.onclick = () => {
+            that._isDrawAllow = false;
+            domDrawBtn.style.color = '#333333';
+            op.series = op.series.filter((item, index) => {
+                return op.series[index].name != 'theLine';
             })
-        });
-
-        window.addEventListener('resize', function() {
-            _this._myChart.setOption({
-                graphic: echarts.util.map(_this._data, function(item, dataIndex) {
-                    return {
-                        position: _this._myChart.convertToPixel('grid', item)
-                    };
-                })
-            });
-        });
-
-        function showTooltip(dataIndex) {
-            _this._myChart.dispatchAction({
-                type: 'showTip',
-                seriesIndex: 0,
-                dataIndex: dataIndex
-            });
-        }
-
-        function hideTooltip(dataIndex) {
-            _this._myChart.dispatchAction({
-                type: 'hideTip'
-            });
-        }
-
-        function onPointDragging(dataIndex, dx, dy) {
-            _this._data[dataIndex] = _this._myChart.convertFromPixel('grid', this.position);
-            _this._myChart.setOption({
-                series: [{
-                    id: 'a',
-                    data: _this._data
-                }]
-            });
-        }
+            that._myChart.clear();
+            that._myChart.setOption(op);
+        };
     },
     /**
      * 渲染Echarts
      */
     formateEchart: () => {
-        var _this = main;
-        _this._option = {
+        var that = main;
+        option = {
             backgroundColor: '#eee',
             animation: false,
-            tooltip: { 
+            tooltip: [{ 
                 trigger: 'axis',
                 axisPointer: {
-                    // type: 'cross',
-                    snap: true,
-                    show: false
+                    type: 'cross'
                 },
                 formatter: (params) => {
                     var param = [];
@@ -182,41 +204,38 @@ var main = {
                             'xData': item.name
                         });
                     })
-                    _this.openBox(param); // 弹框
+                    that.openBox(param); // 弹框
                 },
                 show: false
-            },
+            }],
             axisPointer: {
-                snap: true,
                 link: { xAxisIndex: 'all' },
                 label: {
                     backgroundColor: '#777'
-                },
-                status: 'show',
-                show: false,
-                value: 'null'
+                }
             },
             grid: [{
-                    left: '10%',
-                    right: '8%',
+                    left: '5%',
+                    right: '5%',
+                    top: '5%',
                     height: '25%'
                 },
                 {
-                    left: '10%',
-                    right: '8%',
-                    top: '37%',
+                    left: '5%',
+                    right: '5%',
+                    top: '35%',
                     height: '25%'
                 },
                 {
-                    left: '10%',
-                    right: '8%',
-                    top: '67%',
+                    left: '5%',
+                    right: '5%',
+                    top: '65%',
                     height: '25%'
                 }
             ],
             xAxis: [{
                     type: 'category',
-                    data: _this._data.categoryData,
+                    data: that._data.categoryData,
                     scale: true,
                     boundaryGap: false,
                     axisLine: { onZero: false },
@@ -228,7 +247,7 @@ var main = {
                 {
                     type: 'category',
                     gridIndex: 1,
-                    data: _this._data.categoryData,
+                    data: that._data.categoryData,
                     scale: true,
                     boundaryGap: false,
                     axisLine: { onZero: false },
@@ -242,7 +261,7 @@ var main = {
                 {
                     type: 'category',
                     gridIndex: 2,
-                    data: _this._data.categoryData,
+                    data: that._data.categoryData,
                     scale: true,
                     boundaryGap: false,
                     axisLine: { onZero: false },
@@ -255,14 +274,7 @@ var main = {
                 }
             ],
             yAxis: [{
-                    scale: true,
-                    axisPointer: {
-                        label: {
-                            backgroundColor: '#777'
-                        },
-                        show: false,
-                        value: null
-                    },
+                    scale: true
                 },
                 {
                     scale: true,
@@ -270,35 +282,21 @@ var main = {
                     axisLabel: { show: false },
                     axisLine: { show: false },
                     axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisPointer: {
-                        label: {
-                            backgroundColor: '#777'
-                        },
-                        show: false,
-                        value: null
-                    }
+                    splitLine: { show: false }
                 },
                 {
                     scale: true,
                     gridIndex: 2,
                     axisLabel: { show: false },
                     axisLine: { show: false },
-                    axisTick: { show: false },
-                    axisPointer: {
-                        label: {
-                            backgroundColor: '#777'
-                        },
-                        show: false,
-                        value: null,
-                    }
+                    axisTick: { show: false }
                 }
             ],
             dataZoom: [{ // 缩放
                     type: 'inside',
                     xAxisIndex: [0, 1, 2],
-                    start: 0,
-                    end: _this._zomEnd,
+                    start: that._zomStart,
+                    end: 100,
                     zoomOnMouseWheel: false,
                     show: true
                 },
@@ -307,15 +305,15 @@ var main = {
                     xAxisIndex: [0, 1],
                     type: 'slider',
                     top: '85%',
-                    start: 0,
-                    end: _this._zomEnd,
+                    start: that._zomStart,
+                    end: 100,
                     zoomOnMouseWheel: false
                 }
             ],
             series: [{
                     name: 'Dow-Jones',
                     type: 'candlestick',
-                    data: _this._data.values,
+                    data: that._data.values,
                     itemStyle: {
                         normal: {
                             color: '#06B800',
@@ -323,21 +321,25 @@ var main = {
                             borderColor: null,
                             borderColor0: null
                         }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA5',
                     type: 'line',
-                    data: _this.calculateMA(5, _this._data),
+                    data: that.calculateMA(5, that._data),
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA10',
                     type: 'line',
-                    data: _this.calculateMA(10, _this._data),
+                    data: that.calculateMA(10, that._data),
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
@@ -362,43 +364,49 @@ var main = {
                                 }
                             ],
                         ]
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA20',
                     type: 'line',
-                    data: _this.calculateMA(20, _this._data),
+                    data: that.calculateMA(20, that._data),
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'MA30',
                     type: 'line',
-                    data: _this.calculateMA(30, _this._data),
+                    data: that.calculateMA(30, that._data),
                     smooth: true,
                     lineStyle: {
                         normal: { opacity: 0.5 }
-                    }
+                    },
+                    xAxisIndex: 0,
+                    yAxisIndex: 0
                 },
                 {
                     name: 'Volumn',
                     type: 'bar',
                     xAxisIndex: 1,
                     yAxisIndex: 1,
-                    data: _this._data.volumns
+                    data: that._data.volumns
                 },
                 {
                     name: 'Volumn2',
                     type: 'line',
                     xAxisIndex: 2,
                     yAxisIndex: 2,
-                    data: _this._data.volumns
+                    data: that._data.volumns
                 }
             ]
         };
-        _this._myChart.setOption(_this._option);
+        that._myChart.setOption(option);
     },
     /**
      * 数据拆分
@@ -440,26 +448,28 @@ var main = {
      * params: x轴对应的所有y轴数据
      */
     openBox: (params) => {
-        var _this = main;
-        _this._helfLen = Math.floor(_this._data.categoryData.length * (_this._zomEnd / 100) / 2);
+        var that = main;
+        var xLength = that._data.categoryData.length;
+        var helfLen = Math.floor(xLength * (1 + that._zomStart / 100) / 2);
         if (params && params.length) {
-            var _xIndex = _this._data.categoryData.indexOf(params[0].xData);
+            var xIndex = that._data.categoryData.indexOf(params[0].xData);
+            that._xIndex = xIndex; //
             var tempHtml = '<ul>';
             params.map((item) => {
                 tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
             })
             tempHtml += '</ul>';
-            _this._loopBox.innerHTML = tempHtml;
-            _this._loopBox.style.display = 'block';
-            if (_xIndex < _this._helfLen) {
-                _this._loopBox.style.right = 0;
-                _this._loopBox.style.left = '';
+            that._loopBox.innerHTML = tempHtml;
+            that._loopBox.style.display = 'block';
+            if (xIndex < helfLen) {
+                that._loopBox.style.right = 0;
+                that._loopBox.style.left = '';
             } else {
-                _this._loopBox.style.left = 0;
-                _this._loopBox.style.right = '';
+                that._loopBox.style.left = 0;
+                that._loopBox.style.right = '';
             }
         } else {
-            _this._loopBox.style.display = 'none';
+            that._loopBox.style.display = 'none';
         }
     },
     /**
@@ -468,13 +478,14 @@ var main = {
      * 返回的数据类型: [{name: null, value: nnull},{}...{}]
      */
     getXYArr: (index) => {
-        var _this = main;
-        var op = _this._myChart.getOption();
+        var that = main;
+        var op = that._myChart.getOption();
         var xyArr = [];
         for (var i = 0; i < op.series.length; i++) {
             xyArr.push({
                 'name': op.series[i].name,
-                'value': op.series[i].data[index]
+                'value': op.series[i].data[index],
+                'xData': op.xAxis[0].data[index]
             });
         }
         return xyArr;
@@ -496,112 +507,123 @@ var main = {
      * 获取axiPoint坐标
      */
     getPoint: (params) => {
-        var _this = main;
+        var that = main;
         var pointInPixel = [params.offsetX, params.offsetY];
-        var op = _this._myChart.getOption();
-        if (!_this._hasAxisPointer) {
+        var op = that._myChart.getOption();
+        if (!that._hasAxisPointer) {
             for (var i = 0; i < 3; i++) {
-                if (_this._myChart.containPixel({ gridIndex: i }, pointInPixel)) {
-                    var yData = _this._myChart.convertFromPixel({ gridIndex: i }, pointInPixel)[1]; // y轴值
-                    _this._option.yAxis[i].axisPointer.value = yData;
+                if (that._myChart.containPixel({ gridIndex: i }, pointInPixel)) {
+                    var yData = that._myChart.convertFromPixel({ gridIndex: i }, pointInPixel)[1]; // y轴值
+                    op.yAxis[i].axisPointer.value = yData;
+                    op.yAxis[i].axisPointer.status = 'show';
                 }
-                _this._option.yAxis[i].axisPointer.show = true;
+                op.yAxis[i].axisPointer.show = true;
             }
-            _this._xIndex = _this._myChart.convertFromPixel({ gridIndex: 0 }, pointInPixel)[0];
-            var xData = op.xAxis[0].data[_this._xIndex]; // x轴值
-            _this._option.axisPointer.show = true; // y轴线显示隐藏
-            _this._option.axisPointer.value = xData;
-
-            _this._option.tooltip.show = true; // x轴线显示隐藏
-            _this._option.dataZoom[0].end = _this._zomEnd;
-            _this._option.dataZoom[1].end = _this._zomEnd;
-            var param = _this.getXYArr(_this._xIndex);
-
-            _this.openBox(param);
-            _this._hasAxisPointer = true;
+            that._xIndex = that._myChart.convertFromPixel({ gridIndex: 0 }, pointInPixel)[0];
+            var xData = op.xAxis[0].data[that._xIndex]; // x轴值
+            op.xAxis.map((item, index) => {
+                op.xAxis[index].axisPointer.show = true;
+                op.xAxis[index].axisPointer.value = xData;
+                op.xAxis[index].axisPointer.status = 'show';
+            });
+            op.tooltip[0].show = true; // x轴线显示隐藏
+            op.dataZoom[0].start = that._zomStart;
+            op.dataZoom[1].start = that._zomStart;
+            var param = that.getXYArr(that._xIndex);
+            that.openBox(param);
+            that._hasAxisPointer = true;
         } else {
-
-            _this._option.yAxis.map((ietm, index) => {
-                _this._option.yAxis[index].axisPointer.show = false;
-                _this._option.yAxis[index].axisPointer.value = null;
-            })
-
-            _this._option.axisPointer.show = false;
-            _this._option.tooltip.show = false;
-            _this.openBox();
-            _this._hasAxisPointer = false;
+            op.yAxis.map((ietm, index) => {
+                delete(op.yAxis[index].axisPointer);
+            });
+            op.xAxis.map((item, index) => {
+                delete(op.xAxis[index].axisPointer);
+            });
+            that._xIndex = 0;
+            op.tooltip[0].show = false; // x轴线显示隐藏
+            that._hasAxisPointer = false;
+            that.openBox(param);
         }
-        _this._myChart.setOption(_this._option);
+        that._myChart.clear();
+        that._myChart.setOption(op);
     },
     bindEvents: () => {
-        var _this = main;
+        var that = main;
+        var op = that._myChart.getOption();
         /**
          * 双击事件
          * params: echarts 事件返回值
          */
-        _this._myChart.getZr().on('dblclick', (params) => {
-            _this.getPoint(params);
+        that._myChart.getZr().on('dblclick', (params) => {
+            that.getPoint(params);
             return false;
         });
         /**
          * 鼠标滑出 canvas 关闭弹框
          */
-        _this._myChart.getZr().on('globalout', () => {
-            _this._loopBox.style.display = 'none';
+        that._myChart.getZr().on('globalout', () => {
+            that._loopBox.style.display = 'none';
         });
         /**
          *  键盘事件
          */
         document.onkeydown = (event) => {
             var e = event || window.event || arguments.callee.caller.arguments[0];
-            var dataLenth = _this._data.categoryData.length;
-            var curentLen = _this._data.categoryData.length * (_this._zomEnd / 100);
-            var op = _this._myChart.getOption();
+            var dataLenth = that._data.categoryData.length;
+            var minLenth = Math.floor(dataLenth * (that._zomStart / 100));
+            var op = that._myChart.getOption();
             var xData = 0;
             if (e && e.keyCode == 37) { // 键盘-左
-                if (_this._xIndex > 0) {
-                    _this._xIndex--;
-                    xData = op.xAxis[0].data[_this._xIndex];
-                    _this._option.axisPointer.value = xData;
-                    _this._myChart.clear();
-                    _this._myChart.setOption(_this._option);
-                    var paramData = _this.getXYArr(_this._xIndex);
-                    _this.openBox(paramData);
+                if (that._xIndex > 0) {
+                    that._xIndex--;
+                    xData = op.xAxis[0].data[that._xIndex];
+                    op.xAxis.map((item, index) => {
+                        op.xAxis[index].axisPointer.value = xData;
+                    });
+                    if (that._xIndex < minLenth) { //&& that._zomStart > 10
+                        that._zomStart -= 10;
+                        op.dataZoom[0].start = that._zomStart;
+                        op.dataZoom[1].start = that._zomStart;
+                    }
+                    that._myChart.clear();
+                    that._myChart.setOption(op);
+
+                    var paramData = that.getXYArr(that._xIndex);
+                    that.openBox(paramData);
                 }
                 return false; // 阻止键盘默认事件
             }
             if (e && e.keyCode == 39) { // 键盘-右
-                if (_this._xIndex < (dataLenth - 1)) {
-                    _this._xIndex++;
-                    xData = op.xAxis[0].data[_this._xIndex];
-                    if (_this._xIndex > curentLen) { // 索引大于grid表格x轴长度
-                        _this._zomEnd += 10;
-                        _this._option.dataZoom[0].end = _this._zomEnd;
-                        _this._option.dataZoom[1].end = _this._zomEnd;
-                    }
-                    _this._option.axisPointer.value = xData;
-                    _this._myChart.clear();
-                    _this._myChart.setOption(_this._option);
-                    var paramData = _this.getXYArr(_this._xIndex);
-                    _this.openBox(paramData);
+                if (that._xIndex < (dataLenth - 1)) {
+                    that._xIndex++;
+                    xData = op.xAxis[0].data[that._xIndex];
+                    op.xAxis.map((item, index) => {
+                        op.xAxis[index].axisPointer.value = xData;
+                    });
+                    that._myChart.clear();
+                    that._myChart.setOption(op);
+                    var paramData = that.getXYArr(that._xIndex);
+                    that.openBox(paramData);
                 }
+
                 return false;
             }
             if (e && e.keyCode == 38) { // 键盘-上
-                if (_this._zomEnd > 30) {
-                    _this._zomEnd -= 10;
-                    _this._option.dataZoom[0].end = _this._zomEnd;
-                    _this._option.dataZoom[1].end = _this._zomEnd;
-                    _this._myChart.setOption(_this._option, false, true);
+                if (that._zomStart < 100 && that._xIndex != 0) {
+                    that._zomStart += 10;
+                    op.dataZoom[0].start = that._zomStart;
+                    op.dataZoom[1].start = that._zomStart;
+                    that._myChart.setOption(op, false, true);
                 }
+
                 return false;
             }
             if (e && e.keyCode == 40) { // 键盘-下
-                if (_this._zomEnd <= 90) {
-                    _this._zomEnd += 10;
-                    _this._option.dataZoom[0].end = _this._zomEnd;
-                    _this._option.dataZoom[1].end = _this._zomEnd;
-                    _this._myChart.setOption(_this._option, false, true);
+                if (that._zomStart > 10 && that._xIndex != 0) {
+                    that._zomStart -= 10;
+                    op.dataZoom[0].start = that._zomStart;
+                    op.dataZoom[1].start = that._zomStart;
+                    that._myChart.setOption(op, false, true);
                 }
                 return false;
             }
@@ -616,9 +638,12 @@ var main = {
                 clearTimeout(resizeTimer);
             }
             resizeTimer = setTimeout(() => {
-                if (_this._myChart != '' && _this._myChart != null && _this._myChart != undefined) {
-                    _this._myChart.dispose(); // 销毁
-                    main.init(_this._domSelector);
+                if (that._myChart != '' && that._myChart != null && that._myChart != undefined) {
+                    // var op = that._myChart.getOption();
+                    // that._myChart.dispose(); // 销毁
+                    // that._myChart = echarts.init(document.querySelector(that._domSelector));
+                    // that._myChart.setOption(op);
+                    that._myChart.resize();
                 }
                 resizeTimer = null;
             }, 100);

@@ -77,7 +77,8 @@ a {
     color: #ee0000;
 }
 
-#switch ul li p {
+#switch ul li p,
+#switch ul li span {
     color: #333333;
 }
 

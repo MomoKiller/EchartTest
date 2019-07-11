@@ -102,21 +102,21 @@ var main = {
      */
     addGraphic: () => {
         var that = main;
-        var op = that._myChart.getOption();
-        var data = [];
-        // var allData = [];
         var isFirstDraw = true; // 是否第一次画点
+        var data = [];
         var tempGrid = { gridIndex: 0 }; // 第一象限
         var domDrawBtn = document.querySelector('#drawLine');
         var domClearBtn = document.querySelector('#delLine');
         var domRedrawBtn = document.querySelector('#reDraw');
         var onPointDragging = (dataIndex, dx, dy) => {
             var that = main;
+            var op = that._myChart.getOption();
             op.series[op.series.length - 1].data[dataIndex] = that._myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
             that._myChart.setOption(op); // 数据变更
         };
         // 添加坐标点
         that._myChart.getZr().on('click', (params) => {
+            var op = that._myChart.getOption();
             if (that._isDrawAllow) { // 是否能画点
                 var pointInPixel = [params.offsetX, params.offsetY];
                 var xData = that._myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
@@ -134,7 +134,7 @@ var main = {
                 } else { // 给series 添加新的点
                     op.series[op.series.length - 1].data.push([xData, yData]);
                 }
-                // allData.push([xData, yData]);
+                console.log(op.series[op.series.length - 1].data);
                 that._myChart.setOption({
                     series: op.series,
                     graphic: echarts.util.map(data, function(item, dataIndex) {
@@ -173,6 +173,7 @@ var main = {
         };
         // 清除线条
         domClearBtn.onclick = () => {
+            op = that._myChart.getOption();
             that._isDrawAllow = false;
             domDrawBtn.style.color = '#333333';
             op.series = op.series.filter((item, index) => {

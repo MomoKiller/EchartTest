@@ -543,7 +543,7 @@ var main = {
             that._xIndex = 0;
             op.tooltip[0].show = false; // x轴线显示隐藏
             that._hasAxisPointer = false;
-            that.openBox(param);
+            that.openBox();
         }
         that._myChart.clear();
         that._myChart.setOption(op);

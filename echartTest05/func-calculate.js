@@ -19,5 +19,12 @@ let calc = {
             result.push(+(sum / dayCount).toFixed(3));
         }
         return result;
+    },
+    /**
+     * 
+     */
+    gridProportion: (num) => {
+        num = parseInt(num);
+        return 88 / x - 1;
     }
 };

@@ -96,6 +96,21 @@ let chartT = {
         };
     },
     /**
+     * 鼠标移动回调
+     */
+    moveCallback: (params) => {
+        let that = chartT;
+        let tempArr = [];
+        params.map((item, index) => {
+            tempArr.push({
+                'name': item.seriesName,
+                'value': item.value,
+                'xData': item.name
+            });
+        });
+        that.openBox(tempArr); // 弹框
+    },
+    /**
      * 加载Echarts
      */
     formateEcharts: (result) => {
@@ -110,101 +125,90 @@ let chartT = {
                     axisPointer: {
                         type: 'cross'
                     },
-                    formatter: (params) => {
-                        let param = [];
-                        params.map((item, index) => {
-                            param.push({
-                                'name': item.seriesName,
-                                'value': item.value,
-                                'xData': item.name
-                            });
-                        });
-                        that.openBox(param); // 弹框
-                    },
+                    formatter: (params) => that.moveCallback(params),
                     show: false
                 }],
                 axisPointer: {
                     link: { xAxisIndex: 'all' },
-                    label: {
-                        backgroundColor: '#777'
-                    }
+                    label: { backgroundColor: '#777' }
                 },
                 grid: [{
                         left: '5%',
-                        right: '5%',
-                        top: '5%',
-                        height: '25%'
+                        right: '2%',
+                        top: '2%',
+                        height: '43%'
                     },
                     {
                         left: '5%',
-                        right: '5%',
-                        top: '35%',
-                        height: '25%'
+                        right: '2%',
+                        top: '50%',
+                        height: '20%'
                     },
                     {
                         left: '5%',
-                        right: '5%',
-                        top: '65%',
-                        height: '25%'
+                        right: '2%',
+                        top: '75%',
+                        height: '20%'
                     }
                 ],
                 xAxis: [{
                         type: 'category',
                         data: _data.categoryData,
-                        scale: true,
-                        boundaryGap: false,
-                        axisLine: { onZero: false },
-                        splitLine: { show: false },
-                        splitNumber: 20,
-                        min: 'dataMin',
-                        max: 'dataMax'
+                        // scale: true,
+                        // boundaryGap: false,
+                        // axisLine: { onZero: false },
+                        splitLine: { show: true },
+                        // splitNumber: 20,
+                        // min: 'dataMin',
+                        // max: 'dataMax'
                     },
                     {
                         type: 'category',
                         gridIndex: 1,
                         data: _data.categoryData,
-                        scale: true,
-                        boundaryGap: false,
-                        axisLine: { onZero: false },
-                        axisTick: { show: false },
-                        splitLine: { show: false },
-                        axisLabel: { show: false },
-                        splitNumber: 20,
-                        min: 'dataMin',
-                        max: 'dataMax'
+                        // scale: true,
+                        // boundaryGap: false,
+                        // axisLine: { onZero: false },
+                        // axisTick: { show: false },
+                        splitLine: { show: true },
+                        // axisLabel: { show: false },
+                        // splitNumber: 20,
+                        // min: 'dataMin',
+                        // max: 'dataMax'
                     },
                     {
                         type: 'category',
                         gridIndex: 2,
                         data: _data.categoryData,
-                        scale: true,
-                        boundaryGap: false,
-                        axisLine: { onZero: false },
-                        axisTick: { show: false },
-                        splitLine: { show: false },
-                        axisLabel: { show: false },
-                        splitNumber: 20,
-                        min: 'dataMin',
-                        max: 'dataMax'
+                        // scale: true,
+                        // boundaryGap: false,
+                        // axisLine: { onZero: false },
+                        // axisTick: { show: false },
+                        splitLine: { show: true },
+                        // axisLabel: { show: false },
+                        // splitNumber: 20,
+                        // min: 'dataMin',
+                        // max: 'dataMax'
                     }
                 ],
                 yAxis: [{
-                        scale: true
+                        scale: true,
+                        gridIndex: 0
                     },
                     {
                         scale: true,
                         gridIndex: 1,
-                        axisLabel: { show: false },
-                        axisLine: { show: false },
-                        axisTick: { show: false },
-                        splitLine: { show: false }
+                        // axisLabel: { show: false },
+                        // axisLine: { show: false },
+                        // axisTick: { show: false },
+                        // splitLine: { show: false }
                     },
                     {
                         scale: true,
                         gridIndex: 2,
-                        axisLabel: { show: false },
-                        axisLine: { show: false },
-                        axisTick: { show: false }
+                        // axisLabel: { show: false },
+                        // axisLine: { show: false },
+                        // axisTick: { show: false }
                     }
                 ],
                 dataZoom: [{ // 缩放
@@ -259,27 +263,6 @@ let chartT = {
                         lineStyle: {
                             normal: { opacity: 0.5 }
                         },
-                        markLine: {
-                            symbol: ['none', 'none'],
-                            lineStyle: {
-                                type: 'solid'
-                            },
-                            data: [
-                                [{
-                                        itemStyle: {
-                                            normal: {
-                                                show: true,
-                                                color: '#4c5336'
-                                            }
-                                        },
-                                        coord: ['2005-06-24', 17000] // 初始值
-                                    },
-                                    {
-                                        coord: ['2014-07-01', 14000] // 结束值
-                                    }
-                                ],
-                            ]
-                        },
                         xAxisIndex: 0,
                         yAxisIndex: 0
                     },
@@ -328,10 +311,12 @@ let chartT = {
             that.initSwitch(); // 切换图表
 
             that.bindEvents(); // 事件绑定
+
+            that.exchangeGraphic(); // 增删附图
         }
     },
     /**
-     * graphic组件
+     * graphic组件-画线
      */
     initGraphic: () => {
         let that = chartT;
@@ -411,6 +396,45 @@ let chartT = {
             })
             _myChart.clear();
             _myChart.setOption(op);
+        };
+    },
+    /**
+     * 增删主附图
+     */
+    exchangeGraphic: () => {
+        let domAdd = document.querySelector('#addGraph');
+        let domDel = document.querySelector('#delGraph');
+        let op = _myChart.getOption();
+
+        let grid = [{
+                left: '5%',
+                right: '5%',
+                top: '5%',
+                height: '25%'
+            },
+            {
+                left: '5%',
+                right: '5%',
+                top: '35%',
+                height: '25%'
+            },
+            {
+                left: '5%',
+                right: '5%',
+                top: '65%',
+                height: '25%'
+            }
+        ];
+        let ser = {
+            name: 'MA5',
+            type: 'line',
+            data: calc.calculateMA(5, _data),
+            smooth: true,
+            lineStyle: {
+                normal: { opacity: 0.5 }
+            },
+            xAxisIndex: 0,
+            yAxisIndex: 0
         };
     },
     /**
@@ -509,6 +533,7 @@ let chartT = {
     bindEvents: () => {
         let that = chartT;
         let op = _myChart.getOption();
+        let resizeTimer = null;
         /**
          * 双击事件
          * params: echarts 事件返回值
@@ -591,7 +616,6 @@ let chartT = {
          * 窗口大小改变，重绘Echarts
          * resizeTimer: 重绘timeout
          */
-        let resizeTimer = null;
         window.onresize = () => {
             if (resizeTimer) {
                 clearTimeout(resizeTimer);

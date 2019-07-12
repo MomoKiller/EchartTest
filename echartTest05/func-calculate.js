@@ -21,10 +21,14 @@ let calc = {
         return result;
     },
     /**
-     * 
+     * 获取高度
      */
-    gridProportion: (num) => {
+    getFirstHeigh: (num) => {
         num = parseInt(num);
-        return 88 / x - 1;
+        return 88 / x + 8;
+    },
+    getGridHeight: (num) => {
+        num = parseInt(num);
+        return 88 / x - 5;
     }
 };

@@ -133,19 +133,19 @@ let chartT = {
                     label: { backgroundColor: '#777' }
                 },
                 grid: [{
-                        left: '5%',
+                        left: '80',
                         right: '2%',
                         top: '2%',
                         height: '43%'
                     },
                     {
-                        left: '5%',
+                        left: '80',
                         right: '2%',
                         top: '50%',
                         height: '20%'
                     },
                     {
-                        left: '5%',
+                        left: '80',
                         right: '2%',
                         top: '75%',
                         height: '20%'

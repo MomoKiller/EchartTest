@@ -131,3 +131,24 @@ p {
     margin: 0 10px;
     word-break: break-all;
 }
+
+
+/* 画线 */
+
+#lineTool {
+    height: 25px;
+    width: 25px;
+    background-color: #ffffff;
+    position: absolute;
+    top: 10px;
+    right: 130px;
+    cursor: pointer;
+}
+
+#lineTool i {
+    display: block;
+    height: 25px;
+    width: 25px;
+    background: url(./asset/bj.png) no-repeat;
+    background-size: 100%;
+}

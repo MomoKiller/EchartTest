@@ -9,7 +9,7 @@ let _zomStart = 50;
 let _xIndex = 0; // x轴索引
 let _domSelector = ''; // 挂载点选择器
 let _isDrawAllow = false; // 是否让画点
-
+let _attachedNum = 3; // 附图数量
 let chartT = {
     init: (domSelector) => {
         let that = chartT;
@@ -31,10 +31,9 @@ let chartT = {
             data: {}
         };
         com.httpRequest(params, (result) => {
-            // console.log(result)
             that.formateEcharts(result);
         }, () => {
-            console.log('httpRequest faild');
+            // 调用失败
         });
     },
     /**
@@ -130,179 +129,153 @@ let chartT = {
                 }],
                 axisPointer: {
                     link: { xAxisIndex: 'all' },
-                    label: { backgroundColor: '#777' }
+                    label: { backgroundColor: '#777' },
+                    show: false
                 },
                 grid: [{
-                        left: '80',
-                        right: '2%',
-                        top: '2%',
-                        height: '43%'
-                    },
-                    {
-                        left: '80',
-                        right: '2%',
-                        top: '50%',
-                        height: '20%'
-                    },
-                    {
-                        left: '80',
-                        right: '2%',
-                        top: '75%',
-                        height: '20%'
-                    }
-                ],
+                    left: '90',
+                    right: '70',
+                    top: '2%',
+                    height: '43%'
+                }, {
+                    left: '90',
+                    right: '70',
+                    top: '50%',
+                    height: '20%'
+                }, {
+                    left: '90',
+                    right: '70',
+                    top: '75%',
+                    height: '20%'
+                }, {
+                    left: '90',
+                    right: '70',
+                    top: '100%',
+                    height: '0%'
+                }],
                 xAxis: [{
-                        type: 'category',
-                        data: _data.categoryData,
-                        // scale: true,
-                        // boundaryGap: false,
-                        // axisLine: { onZero: false },
-                        splitLine: { show: true },
-                        // splitNumber: 20,
-                        // min: 'dataMin',
-                        // max: 'dataMax'
-                    },
-                    {
-                        type: 'category',
-                        gridIndex: 1,
-                        data: _data.categoryData,
-                        // scale: true,
-                        // boundaryGap: false,
-                        // axisLine: { onZero: false },
-                        // axisTick: { show: false },
-                        splitLine: { show: true },
-                        // axisLabel: { show: false },
-                        // splitNumber: 20,
-                        // min: 'dataMin',
-                        // max: 'dataMax'
-                    },
-                    {
-                        type: 'category',
-                        gridIndex: 2,
-                        data: _data.categoryData,
-                        // scale: true,
-                        // boundaryGap: false,
-                        // axisLine: { onZero: false },
-                        // axisTick: { show: false },
-                        splitLine: { show: true },
-                        // axisLabel: { show: false },
-                        // splitNumber: 20,
-                        // min: 'dataMin',
-                        // max: 'dataMax'
-                    }
-                ],
+                    type: 'category',
+                    splitLine: { show: true },
+                    gridIndex: 0,
+                    data: _data.categoryData
+                }, {
+                    type: 'category',
+                    splitLine: { show: true },
+                    gridIndex: 1,
+                    data: _data.categoryData
+                }, {
+                    type: 'category',
+                    gridIndex: 2,
+                    data: _data.categoryData,
+                    splitLine: { show: true }
+                }],
                 yAxis: [{
-                        scale: true,
-                        gridIndex: 0
-                    },
-                    {
-                        scale: true,
-                        gridIndex: 1,
-                        // axisLabel: { show: false },
-                        // axisLine: { show: false },
-                        // axisTick: { show: false },
-                        // splitLine: { show: false }
-                    },
-                    {
-                        scale: true,
-                        gridIndex: 2,
-                        // axisLabel: { show: false },
-                        // axisLine: { show: false },
-                        // axisTick: { show: false }
-                    }
-                ],
-                dataZoom: [{ // 缩放
-                        type: 'inside',
-                        xAxisIndex: [0, 1, 2],
-                        start: _zomStart,
-                        end: 100,
-                        zoomOnMouseWheel: false,
-                        show: true
-                    },
-                    {
-                        show: false,
-                        xAxisIndex: [0, 1],
-                        type: 'slider',
-                        top: '85%',
-                        start: _zomStart,
-                        end: 100,
-                        zoomOnMouseWheel: false
-                    }
-                ],
+                    scale: true,
+                    gridIndex: 0
+                }, {
+                    scale: true,
+                    gridIndex: 1
+                }, {
+                    scale: true,
+                    gridIndex: 2
+                }],
+                dataZoom: [{
+                    type: 'inside',
+                    xAxisIndex: [0, 1, 2],
+                    start: _zomStart,
+                    end: 100,
+                    zoomOnMouseWheel: false,
+                    show: true
+                }, {
+                    show: false,
+                    xAxisIndex: [0, 1, 2],
+                    type: 'slider',
+                    top: '85%',
+                    start: _zomStart,
+                    end: 100,
+                    zoomOnMouseWheel: false
+                }],
                 series: [{
-                        name: 'Dow-Jones',
-                        type: 'candlestick',
-                        data: _data.values,
-                        itemStyle: {
-                            normal: {
-                                color: '#06B800',
-                                color0: '#FA0000',
-                                borderColor: null,
-                                borderColor0: null
+                    name: 'Dow-Jones',
+                    type: 'candlestick',
+                    itemStyle: {
+                        normal: {
+                            color: '#06B800',
+                            color0: '#FA0000',
+                            borderColor: null,
+                            borderColor0: null
+                        }
+                    },
+                    markLine: {
+                        symbol: ['none', 'none'],
+                        data: [{
+                                name: 'min line on close',
+                                type: 'min',
+                                valueDim: 'close'
+                            },
+                            {
+                                name: 'max line on close',
+                                type: 'max',
+                                valueDim: 'close'
                             }
-                        },
-                        xAxisIndex: 0,
-                        yAxisIndex: 0
+                        ]
                     },
-                    {
-                        name: 'MA5',
-                        type: 'line',
-                        data: calc.calculateMA(5, _data),
-                        smooth: true,
-                        lineStyle: {
-                            normal: { opacity: 0.5 }
-                        },
-                        xAxisIndex: 0,
-                        yAxisIndex: 0
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: _data.values
+                }, {
+                    name: 'MA5',
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        normal: { opacity: 0.5 }
                     },
-                    {
-                        name: 'MA10',
-                        type: 'line',
-                        data: calc.calculateMA(10, _data),
-                        smooth: true,
-                        lineStyle: {
-                            normal: { opacity: 0.5 }
-                        },
-                        xAxisIndex: 0,
-                        yAxisIndex: 0
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: calc.calculateMA(5, _data)
+                }, {
+                    name: 'MA10',
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        normal: { opacity: 0.5 }
                     },
-                    {
-                        name: 'MA20',
-                        type: 'line',
-                        data: calc.calculateMA(20, _data),
-                        smooth: true,
-                        lineStyle: {
-                            normal: { opacity: 0.5 }
-                        },
-                        xAxisIndex: 0,
-                        yAxisIndex: 0
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: calc.calculateMA(10, _data)
+                }, {
+                    name: 'MA20',
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        normal: { opacity: 0.5 }
                     },
-                    {
-                        name: 'MA30',
-                        type: 'line',
-                        data: calc.calculateMA(30, _data),
-                        smooth: true,
-                        lineStyle: {
-                            normal: { opacity: 0.5 }
-                        },
-                        xAxisIndex: 0,
-                        yAxisIndex: 0
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: calc.calculateMA(20, _data)
+                }, {
+                    name: 'MA30',
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        normal: { opacity: 0.5 }
                     },
-                    {
-                        name: 'Volumn',
-                        type: 'bar',
-                        xAxisIndex: 1,
-                        yAxisIndex: 1,
-                        data: _data.volumns
-                    },
-                    {
-                        name: 'Volumn2',
-                        type: 'line',
-                        xAxisIndex: 2,
-                        yAxisIndex: 2,
-                        data: _data.volumns
-                    }
-                ]
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    data: calc.calculateMA(30, _data)
+                }, {
+                    name: 'Volumn',
+                    type: 'bar',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    data: _data.volumns
+                }, {
+                    name: 'Volumn2',
+                    type: 'line',
+                    xAxisIndex: 2,
+                    yAxisIndex: 2,
+                    data: _data.volumns
+                }]
             };
             _myChart.setOption(option);
 
@@ -312,7 +285,7 @@ let chartT = {
 
             that.bindEvents(); // 事件绑定
 
-            that.exchangeGraphic(); // 增删附图
+            that.addDelGraphic(); // 增删附图
         }
     },
     /**
@@ -372,80 +345,140 @@ let chartT = {
         });
         // 控制是否可画线
         domDrawBtn.onclick = () => {
-            _isDrawAllow = !_isDrawAllow; // 是否让画线
-            if (_isDrawAllow) {
-                domDrawBtn.style.color = '#ee0000';
-                isFirstDraw = true;
-            } else {
-                domDrawBtn.style.color = '#333333';
+            if (!_hasAxisPointer) {
+                _isDrawAllow = !_isDrawAllow; // 是否让画线
+                if (_isDrawAllow) {
+                    domDrawBtn.style.color = '#ee0000';
+                    isFirstDraw = true;
+                } else {
+                    domDrawBtn.style.color = '#333333';
+                }
             }
         };
         // 重新画线
         domRedrawBtn.onclick = () => {
-            isFirstDraw = true;
-            _isDrawAllow = true;
-            domDrawBtn.style.color = '#333333';
+            if (!_hasAxisPointer) {
+                isFirstDraw = true;
+                _isDrawAllow = true;
+                domDrawBtn.style.color = '#333333';
+            }
         };
         // 清除线条
         domClearBtn.onclick = () => {
-            op = _myChart.getOption();
-            _isDrawAllow = false;
-            domDrawBtn.style.color = '#333333';
-            op.series = op.series.filter((item, index) => {
-                return op.series[index].name != 'theLine';
-            })
-            _myChart.clear();
-            _myChart.setOption(op);
+            if (!_hasAxisPointer) {
+                op = _myChart.getOption();
+                _isDrawAllow = false;
+                domDrawBtn.style.color = '#333333';
+                op.series = op.series.filter((item, index) => {
+                    return op.series[index].name != 'theLine';
+                })
+                _myChart.clear();
+                _myChart.setOption(op);
+            }
         };
     },
     /**
      * 增删主附图
      */
-    exchangeGraphic: () => {
+    addDelGraphic: () => {
+        let that = chartT;
         let domAdd = document.querySelector('#addGraph');
         let domDel = document.querySelector('#delGraph');
         let op = _myChart.getOption();
-
-        let grid = [{
-                left: '5%',
-                right: '5%',
-                top: '5%',
-                height: '25%'
-            },
-            {
-                left: '5%',
-                right: '5%',
-                top: '35%',
-                height: '25%'
-            },
-            {
-                left: '5%',
-                right: '5%',
-                top: '65%',
-                height: '25%'
+        let gridParams = [];
+        // 添加附图
+        domAdd.addEventListener('click', (e) => {
+            if (_attachedNum < 6)
+                _attachedNum++;
+            else
+                return;
+            op = _myChart.getOption();
+            gridParams = calc.getGrid(_attachedNum);
+            let tempGrid = [];
+            for (var i = 0; i < _attachedNum; i++) {
+                tempGrid.push({
+                    left: '90',
+                    right: '70',
+                    top: gridParams[i].gridT + '%',
+                    height: gridParams[i].gridH + '%'
+                });
             }
-        ];
-        let ser = {
-            name: 'MA5',
-            type: 'line',
-            data: calc.calculateMA(5, _data),
-            smooth: true,
-            lineStyle: {
-                normal: { opacity: 0.5 }
-            },
-            xAxisIndex: 0,
-            yAxisIndex: 0
-        };
+            op.grid = tempGrid;
+            op.xAxis.push({
+                type: 'category',
+                gridIndex: _attachedNum - 1,
+                data: _data.categoryData,
+                splitLine: { show: true }
+            });
+            op.yAxis.push({
+                scale: true,
+                gridIndex: _attachedNum - 1
+            });
+            op.series.push({
+                name: 'Volumn' + _attachedNum,
+                type: 'line',
+                xAxisIndex: _attachedNum - 1,
+                yAxisIndex: _attachedNum - 1,
+                data: _data.volumns
+            });
+            op.dataZoom[0].xAxisIndex.push(_attachedNum - 1);
+            op.dataZoom[1].xAxisIndex.push(_attachedNum - 1);
+            // let tempOp = calc.deepClone(op);
+            _myChart.clear();
+            _myChart.setOption(op, true, false);
+        });
+        // 删除附图
+        domDel.addEventListener('click', (e) => {
+            if (_attachedNum > 2)
+                _attachedNum--;
+            else
+                return;
+            op = _myChart.getOption();
+            gridParams = calc.getGrid(_attachedNum);
+            let tempGrid = [];
+            for (var i = 0; i < _attachedNum; i++) {
+                tempGrid.push({
+                    left: '90',
+                    right: '2%',
+                    top: gridParams[i].gridT + '%',
+                    height: gridParams[i].gridH + '%'
+                });
+            }
+
+            op.grid = tempGrid;
+            op.xAxis = op.xAxis.filter((item, index) => {
+                return op.xAxis[index].gridIndex != _attachedNum;
+            });
+            op.yAxis = op.yAxis.filter((item, index) => {
+                return op.yAxis[index].gridIndex != _attachedNum;
+            });
+            op.series = op.series.filter((item, index) => {
+                return op.series[index].xAxisIndex != _attachedNum;
+            });
+            op.dataZoom[0].xAxisIndex.pop();
+            op.dataZoom[1].xAxisIndex.pop();
+            let tempOp = calc.deepClone(op);
+            _myChart.clear();
+            _myChart.dispose();
+            _myChart = echarts.init(_domSelector);
+            _myChart.setOption(tempOp);
+
+            that.initGraphic(); // graphic组件
+            // that.initSwitch(); // 切换图表
+            that.bindEvents(); // 事件绑定
+            // that.addDelGraphic(); // 增删附图
+
+        });
     },
     /**
      * 切换图表 
      */
     initSwitch: () => {
         let domSwitch = document.querySelector('#switch ul');
-        let op = _myChart.getOption();
-        let mapDtata = op.series;
         domSwitch.addEventListener('click', (e) => {
             if (e.target.getAttribute('data-index') != null) {
+                op = _myChart.getOption();
+                let mapDtata = op.series;
                 let domAll = document.querySelectorAll('#switch ul li p');
                 for (let i = 0; i < domAll.length; i++) {
                     domAll[i].style.color = '#333333';
@@ -456,7 +489,7 @@ let chartT = {
                 op.series = op.series.filter((item, index) => { // 筛选
                     return op.series[index].xAxisIndex != paramIndex;
                 });
-                op.series.push(JSON.parse(JSON.stringify(mapDtata[serIndex])));
+                op.series.push(calc.deepClone(mapDtata[serIndex]));
                 op.series[op.series.length - 1].xAxisIndex = paramIndex;
                 op.series[op.series.length - 1].yAxisIndex = paramIndex;
 
@@ -473,7 +506,7 @@ let chartT = {
         let pointInPixel = [params.offsetX, params.offsetY];
         let op = _myChart.getOption();
         if (!_hasAxisPointer) {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < _attachedNum; i++) {
                 if (_myChart.containPixel({ gridIndex: i }, pointInPixel)) {
                     let yData = _myChart.convertFromPixel({ gridIndex: i }, pointInPixel)[1]; // y轴值
                     op.yAxis[i].axisPointer.value = yData;
@@ -497,9 +530,11 @@ let chartT = {
         } else {
             op.yAxis.map((ietm, index) => {
                 delete(op.yAxis[index].axisPointer);
+                // op.yAxis[index].axisPointer.show = false;
             });
             op.xAxis.map((item, index) => {
                 delete(op.xAxis[index].axisPointer);
+                // op.xAxis[index].axisPointer.show = false;
             });
             _xIndex = 0;
             op.tooltip[0].show = false; // x轴线显示隐藏
@@ -539,7 +574,9 @@ let chartT = {
          * params: echarts 事件返回值
          */
         _myChart.getZr().on('dblclick', (params) => {
-            that.getPoint(params);
+            if (!_isDrawAllow) {
+                that.getPoint(params);
+            }
             return false;
         });
         /**
@@ -571,7 +608,6 @@ let chartT = {
                     }
                     _myChart.clear();
                     _myChart.setOption(op);
-
                     let paramData = that.getXYArr(_xIndex);
                     that.openBox(paramData);
                 }
@@ -592,23 +628,26 @@ let chartT = {
 
                 return false;
             }
-            if (e && e.keyCode == 38) { // 键盘-上
-                if (_zomStart < 100 && _xIndex != 0) {
-                    _zomStart += 10;
-                    op.dataZoom[0].start = _zomStart;
-                    op.dataZoom[1].start = _zomStart;
-                    _myChart.setOption(op, false, true);
+            if (e && e.keyCode == 38 && _hasAxisPointer) { // 键盘-上
+                if (_zomStart <= 90) {
+                    _zomStart += 5;
+                } else if (_zomStart < 100 && _zomStart > 90) {
+                    _zomStart += 1;
                 }
-
+                op.dataZoom[0].start = _zomStart;
+                op.dataZoom[1].start = _zomStart;
+                _myChart.setOption(op, false, true);
                 return false;
             }
-            if (e && e.keyCode == 40) { // 键盘-下
-                if (_zomStart > 10 && _xIndex != 0) {
-                    _zomStart -= 10;
-                    op.dataZoom[0].start = _zomStart;
-                    op.dataZoom[1].start = _zomStart;
-                    _myChart.setOption(op, false, true);
+            if (e && e.keyCode == 40 && _hasAxisPointer) { // 键盘-下
+                if (_zomStart > 90 && _zomStart <= 100) {
+                    _zomStart -= 1;
+                } else if (_zomStart > 5) {
+                    _zomStart -= 5;
                 }
+                op.dataZoom[0].start = _zomStart;
+                op.dataZoom[1].start = _zomStart;
+                _myChart.setOption(op, false, true);
                 return false;
             }
         };

@@ -52,5 +52,14 @@ let com = {
             xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xmlhttp.send(requestData);
         }
+    },
+    /**
+     * 基于httpRequest方法的封装
+     * @param {*} url 接口路径
+     * @param {*} data 无序数据对象
+     * @param {*} call 回调函数
+     */
+    getJSON(url, data, call) {
+
     }
 };

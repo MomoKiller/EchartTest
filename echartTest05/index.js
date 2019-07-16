@@ -162,6 +162,7 @@ let chartT = {
         let that = chartT;
         if (result && result.length) {
             _data = that.splitData(result);
+            let domH = _domSelector.clientHeight || _domSelector.offsetHeight;
             let option = {
                 backgroundColor: '#eee',
                 animation: false,
@@ -179,25 +180,25 @@ let chartT = {
                     show: false
                 },
                 grid: [{
-                    left: '90',
-                    right: '70',
-                    top: '2%',
-                    height: '43%'
+                    left: 90,
+                    right: 70,
+                    top: 25,
+                    // height: '43%'
+                    height: domH * 0.5 - 50
                 }, {
-                    left: '90',
-                    right: '70',
-                    top: '50%',
-                    height: '20%'
+                    left: 90,
+                    right: 70,
+                    // top: '50%',
+                    // height: '20%'
+                    top: domH * 0.5 + 25,
+                    height: domH * 0.25 - 50
                 }, {
-                    left: '90',
-                    right: '70',
-                    top: '75%',
-                    height: '20%'
-                }, {
-                    left: '90',
-                    right: '70',
-                    top: '100%',
-                    height: '0%'
+                    left: 90,
+                    right: 70,
+                    // top: '75%',
+                    // height: '20%'
+                    top: domH * 0.75 + 25,
+                    height: domH * 0.25 - 50
                 }],
                 xAxis: [{
                     type: 'category',
@@ -426,6 +427,19 @@ let chartT = {
     /**
      * 增删主附图
      */
+    getGrid: (num) => {
+        num = parseInt(num);
+        let tempJson = [];
+        let domH = _domSelector.clientHeight || _domSelector.offsetHeight;
+        tempJson.push({ 'gridH': (0.8 - 0.1 * num) * domH - 50, 'gridT': 25 });
+        for (let i = 0; i < (num - 1); i++) {
+            tempJson.push({
+                'gridH': (0.2 + 0.1 * num) * domH / (num - 1) - 50,
+                'gridT': domH * (0.8 - 0.1 * num + i * (0.2 + 0.1 * num) / (num - 1)) + 25
+            });
+        }
+        return tempJson;
+    },
     addDelGraphic: () => {
         let that = chartT;
         let domAdd = document.querySelector('#addGraph');
@@ -439,14 +453,14 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = com.getGrid(_attachedNum);
+            gridParams = that.getGrid(_attachedNum);
             let tempGrid = [];
             for (var i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
                     left: '90',
                     right: '70',
-                    top: gridParams[i].gridT + '%',
-                    height: gridParams[i].gridH + '%'
+                    top: gridParams[i].gridT,
+                    height: gridParams[i].gridH
                 });
             }
             op.grid = tempGrid;
@@ -479,14 +493,14 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = com.getGrid(_attachedNum);
+            gridParams = that.getGrid(_attachedNum);
             let tempGrid = [];
             for (var i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
                     left: '90',
                     right: '2%',
-                    top: gridParams[i].gridT + '%',
-                    height: gridParams[i].gridH + '%'
+                    top: gridParams[i].gridT,
+                    height: gridParams[i].gridH
                 });
             }
 
@@ -701,15 +715,14 @@ let chartT = {
          * resizeTimer: 重绘timeout
          */
         window.onresize = () => {
-            if (resizeTimer) {
-                clearTimeout(resizeTimer);
-            }
-            resizeTimer = setTimeout(() => {
-                if (_myChart != '' && _myChart != null && _myChart != undefined) {
-                    _myChart.resize();
-                }
-                resizeTimer = null;
-            }, 100);
+            let op = _myChart.getOption();
+            let gridParams = that.getGrid(_attachedNum);
+            op.grid.map((item, index) => {
+                op.grid[index].top = gridParams[index].gridT;
+                op.grid[index].height = gridParams[index].gridH;
+            });
+            _myChart.resize();
+            _myChart.setOption(op);
         };
     }
 };

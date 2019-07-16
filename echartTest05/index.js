@@ -169,7 +169,10 @@ let chartT = {
                 tooltip: [{ 
                     trigger: 'axis',
                     axisPointer: {
-                        type: 'cross'
+                        type: 'cross',
+                        crossStyle: {
+                            type: 'solid'
+                        }
                     },
                     formatter: (params) => that.moveCallback(params),
                     show: false
@@ -258,7 +261,10 @@ let chartT = {
                         data: [{
                                 name: 'min line on close',
                                 type: 'min',
-                                valueDim: 'close'
+                                valueDim: 'close',
+                                lineStyle: {
+                                    color: '#ee0000'
+                                }
                             },
                             {
                                 name: 'max line on close',
@@ -279,6 +285,7 @@ let chartT = {
                     },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
+                    showSymbol: false,
                     data: calc.calculateMA(5, _data)
                 }, {
                     name: 'MA10',
@@ -289,6 +296,7 @@ let chartT = {
                     },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
+                    showSymbol: false,
                     data: calc.calculateMA(10, _data)
                 }, {
                     name: 'MA20',
@@ -299,6 +307,7 @@ let chartT = {
                     },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
+                    showSymbol: false,
                     data: calc.calculateMA(20, _data)
                 }, {
                     name: 'MA30',
@@ -309,6 +318,7 @@ let chartT = {
                     },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
+                    showSymbol: false,
                     data: calc.calculateMA(30, _data)
                 }, {
                     name: 'Volumn',
@@ -321,6 +331,7 @@ let chartT = {
                     type: 'line',
                     xAxisIndex: 2,
                     yAxisIndex: 2,
+                    showSymbol: false,
                     data: _data.volumns
                 }]
             };
@@ -484,7 +495,7 @@ let chartT = {
             op.dataZoom[0].xAxisIndex.push(_attachedNum - 1);
             op.dataZoom[1].xAxisIndex.push(_attachedNum - 1);
             _myChart.clear();
-            _myChart.setOption(op, true, false);
+            _myChart.setOption(op, true, true);
         });
         // 删除附图
         domDel.addEventListener('click', (e) => {
@@ -520,12 +531,10 @@ let chartT = {
             _myChart.clear();
             _myChart.dispose();
             _myChart = echarts.init(_domSelector);
-            _myChart.setOption(tempOp);
+            _myChart.setOption(tempOp, true, true);
 
             that.initGraphic(); // graphic组件
-            // that.initSwitch(); // 切换图表
             that.bindEvents(); // 事件绑定
-            // that.addDelGraphic(); // 增删附图
 
         });
     },
@@ -653,7 +662,7 @@ let chartT = {
             let minLenth = Math.floor(dataLenth * (_zomStart / 100));
             let op = _myChart.getOption();
             let xData = 0;
-            if (e && e.keyCode == 37) { // 键盘-左
+            if (e && e.keyCode == 37 && _hasAxisPointer) { // 键盘-左
                 if (_xIndex > 0) {
                     _xIndex--;
                     xData = op.xAxis[0].data[_xIndex];
@@ -666,13 +675,13 @@ let chartT = {
                         op.dataZoom[1].start = _zomStart;
                     }
                     _myChart.clear();
-                    _myChart.setOption(op);
+                    _myChart.setOption(op, true, true);
                     let paramData = that.getXYArr(_xIndex);
                     that.openBox(paramData);
                 }
                 return false; // 阻止键盘默认事件
             }
-            if (e && e.keyCode == 39) { // 键盘-右
+            if (e && e.keyCode == 39 && _hasAxisPointer) { // 键盘-右
                 if (_xIndex < (dataLenth - 1)) {
                     _xIndex++;
                     xData = op.xAxis[0].data[_xIndex];
@@ -680,22 +689,26 @@ let chartT = {
                         op.xAxis[index].axisPointer.value = xData;
                     });
                     _myChart.clear();
-                    _myChart.setOption(op);
+                    _myChart.setOption(op, true, true);
                     let paramData = that.getXYArr(_xIndex);
                     that.openBox(paramData);
                 }
-
                 return false;
             }
             if (e && e.keyCode == 38 && _hasAxisPointer) { // 键盘-上
-                if (_zomStart <= 90) {
+
+                if (_zomStart <= 85) {
                     _zomStart += 5;
-                } else if (_zomStart < 100 && _zomStart > 90) {
+                } else if (_zomStart < 95 && _zomStart > 85) {
                     _zomStart += 1;
+                }
+                minLenth = Math.floor(dataLenth * (_zomStart / 100));
+                if (_xIndex < minLenth) { // 重设_xIndex
+                    _xIndex = minLenth;
                 }
                 op.dataZoom[0].start = _zomStart;
                 op.dataZoom[1].start = _zomStart;
-                _myChart.setOption(op, false, true);
+                _myChart.setOption(op, true, true);
                 return false;
             }
             if (e && e.keyCode == 40 && _hasAxisPointer) { // 键盘-下
@@ -706,7 +719,7 @@ let chartT = {
                 }
                 op.dataZoom[0].start = _zomStart;
                 op.dataZoom[1].start = _zomStart;
-                _myChart.setOption(op, false, true);
+                _myChart.setOption(op, true, true);
                 return false;
             }
         };

@@ -10,7 +10,14 @@ let _xIndex = 0; // x轴索引
 let _domSelector = ''; // 挂载点选择器
 let _isDrawAllow = false; // 是否让画点
 let _attachedNum = 3; // 附图数量
+let _httpPath = 'http://47.110.91.198:33707/trade/'; // 路径
 let chartT = {
+    api: {
+        login: _httpPath + 'login',
+        socket: _httpPath + 'socket.io/get/tonken',
+        time: _httpPath + 'trade/price/time/chart/qry',
+        candle: _httpPath + 'trade/price/candle/chart/qry'
+    },
     init: (domSelector) => {
         let that = chartT;
         _domSelector = document.querySelector(domSelector);
@@ -25,16 +32,55 @@ let chartT = {
      */
     getEchartsData: () => {
         let that = chartT;
-        let params = {
+        // let params = {
+        //     j_orgcode: 'lyjr',
+        //     j_username: 'test9999',
+        //     j_password: 'test1234',
+        //     j_cip: '47.75.131.161'
+        // };
+        // com.postJSON(that.api.login, params, (result) => {
+        //     if (result && result.code == '000000') {
+        //         that.getTimeData();
+        //         that.getCandleData();
+        //     }
+        // });
+
+        let temp = {
+            type: 'GET',
             httpUrl: './data.json',
-            type: 'get',
             data: {}
+        }
+        com.httpRequest(temp, (result) => {
+            that.formateEcharts(JSON.parse(result).reverse());
+        }, (error) => {
+            console.log(error);
+        })
+    },
+    getTimeData: () => {
+        let params = {
+            "symbol": "68e2c174-6d95-40f0-86e1-e0f906687b1a",
+            "unit": 1,
+            "startStamp": 0,
+            "endStamp": 0
         };
-        com.httpRequest(params, (result) => {
-            that.formateEcharts(result);
-        }, () => {
-            // 调用失败
-        });
+        com.postJSON(chartT.api.time, params, (result) => {
+            if (result && result.code == '000000') {
+                console.log(JSON.parse(result.list[0]));
+            }
+        })
+    },
+    getCandleData: () => {
+        let params = {
+            "symbol": "68e2c174-6d95-40f0-86e1-e0f906687b1a",
+            "unit": 1,
+            "count": 500,
+            "endStamp": 0
+        };
+        com.postJSON(chartT.api.candle, params, (result) => {
+            if (result && result.code == '000000') {
+                console.log(JSON.parse(result.list[0]));
+            }
+        })
     },
     /**
      * 初始化弹框
@@ -115,7 +161,7 @@ let chartT = {
     formateEcharts: (result) => {
         let that = chartT;
         if (result && result.length) {
-            _data = that.splitData(JSON.parse(result).reverse());
+            _data = that.splitData(result);
             let option = {
                 backgroundColor: '#eee',
                 animation: false,
@@ -199,7 +245,7 @@ let chartT = {
                     name: 'Dow-Jones',
                     type: 'candlestick',
                     itemStyle: {
-                        normal: {
+                        normal: { // k线图样式
                             color: '#06B800',
                             color0: '#FA0000',
                             borderColor: null,
@@ -393,7 +439,7 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = calc.getGrid(_attachedNum);
+            gridParams = com.getGrid(_attachedNum);
             let tempGrid = [];
             for (var i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
@@ -423,7 +469,6 @@ let chartT = {
             });
             op.dataZoom[0].xAxisIndex.push(_attachedNum - 1);
             op.dataZoom[1].xAxisIndex.push(_attachedNum - 1);
-            // let tempOp = calc.deepClone(op);
             _myChart.clear();
             _myChart.setOption(op, true, false);
         });
@@ -434,7 +479,7 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = calc.getGrid(_attachedNum);
+            gridParams = com.getGrid(_attachedNum);
             let tempGrid = [];
             for (var i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
@@ -457,7 +502,7 @@ let chartT = {
             });
             op.dataZoom[0].xAxisIndex.pop();
             op.dataZoom[1].xAxisIndex.pop();
-            let tempOp = calc.deepClone(op);
+            let tempOp = com.deepClone(op);
             _myChart.clear();
             _myChart.dispose();
             _myChart = echarts.init(_domSelector);
@@ -489,7 +534,7 @@ let chartT = {
                 op.series = op.series.filter((item, index) => { // 筛选
                     return op.series[index].xAxisIndex != paramIndex;
                 });
-                op.series.push(calc.deepClone(mapDtata[serIndex]));
+                op.series.push(com.deepClone(mapDtata[serIndex]));
                 op.series[op.series.length - 1].xAxisIndex = paramIndex;
                 op.series[op.series.length - 1].yAxisIndex = paramIndex;
 

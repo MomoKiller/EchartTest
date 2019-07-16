@@ -1,65 +1,104 @@
 let com = {
     httpRequest(paramObj, fun, errFun) {
         let xmlhttp = null;
-        /*创建XMLHttpRequest对象，
-         *老版本的 Internet Explorer（IE5 和 IE6）使用 ActiveX 对象：new ActiveXObject("Microsoft.XMLHTTP")
-         * */
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
         } else if (window.ActiveXObject) {
             xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
         }
-        /*判断是否支持请求*/
         if (xmlhttp == null) {
             console.log('你的浏览器不支持XMLHttp');
             return;
         }
-        /*请求方式，并且转换为大写*/
         let httpType = (paramObj.type || 'GET').toUpperCase();
-        /*数据类型*/
         let dataType = paramObj.dataType || 'json';
-        /*请求接口*/
         let httpUrl = paramObj.httpUrl || '';
-        /*是否异步请求*/
         let async = paramObj.async || true;
-        /*请求参数--post请求参数格式为：foo=bar&lorem=ipsum*/
         let paramData = paramObj.data || [];
         let requestData = '';
         for (let name in paramData) {
             requestData += name + '=' + paramData[name] + '&';
         }
         requestData = requestData == '' ? '' : requestData.substring(0, requestData.length - 1);
-        console.log(requestData)
-
-        /*请求接收*/
         xmlhttp.onreadystatechange = () => {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                /*成功回调函数*/
                 fun(xmlhttp.responseText);
             } else {
-                /*失败回调函数*/
                 errFun;
             }
         }
-
-        /*接口连接，先判断连接类型是post还是get*/
         if (httpType == 'GET') {
             xmlhttp.open("GET", httpUrl, async);
             xmlhttp.send(null);
         } else if (httpType == 'POST') {
             xmlhttp.open("POST", httpUrl, async);
-            //发送合适的请求头信息
             xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xmlhttp.send(requestData);
         }
     },
     /**
-     * 基于httpRequest方法的封装
-     * @param {*} url 接口路径
-     * @param {*} data 无序数据对象
-     * @param {*} call 回调函数
+     * 接口post请求
+     * url: 接口;  data: 数据参数; call: 回调函数
      */
-    getJSON(url, data, call) {
+    postJSON: (url, data, call) => {
+        let isLogin = url.indexOf('login') > -1 ? true : false;
+        let xmlhttp = null;
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        if (xmlhttp == null) {
+            console.log('浏览器不支持XMLHttp');
+            return;
+        }
+        let requestData = '';
+        for (let name in data) {
+            requestData += name + '=' + data[name] + '&';
+        }
+        requestData = requestData == '' ? '' : requestData.substring(0, requestData.length - 1);
+        xmlhttp.onreadystatechange = () => {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                call(JSON.parse(xmlhttp.responseText));
+            }
+        };
+        xmlhttp.open("POST", url, true);
+        xmlhttp.setRequestHeader("Content-type", isLogin ? "application/x-www-form-urlencoded" : "application/json");
+        xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        xmlhttp.send(isLogin ? requestData : JSON.stringify(data));
+    },
+    /**
+     * 计算新grid的高度和top值
+     */
+    getGrid: (num) => {
+        num = parseInt(num);
+        let tempJson = [];
+        tempJson.push({ 'gridH': 73 - 10 * num, 'gridT': 2 });
+        for (let i = 0; i < (num - 1); i++) {
+            tempJson.push({ 'gridH': 30 / (num - 1) + 5, 'gridT': (80 - 10 * num + i * (30 / (num - 1) + 10)) });
+        }
+        return tempJson;
+    },
+    /**
+     * 深拷贝
+     */
+    deepClone: (obj) => {
+        let objClone = Array.isArray(obj) ? [] : {};
+        if (obj && typeof obj === "object") {
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    if (obj[key] && typeof obj[key] === "object") {
+                        objClone[key] = calc.deepClone(obj[key]);
+                    } else {
+                        objClone[key] = obj[key];
+                    }
+                }
+            }
+        }
+        return objClone;
+    },
+    /**
+     * 图表配置项
+     */
 
-    }
 };

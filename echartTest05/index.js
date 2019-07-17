@@ -5,7 +5,7 @@ let _myChart = ''; // ECHARTS 实例对象
 let _data = []; // 数据对象
 let _hasAxisPointer = false; // 点击是否给了坐标
 let _loopBox = ''; // 模拟弹框
-let _zomStart = 50;
+let _zomStart = 90;
 let _xIndex = 0; // x轴索引
 let _domSelector = ''; // 挂载点选择器
 let _isDrawAllow = false; // 是否让画点
@@ -234,7 +234,6 @@ let chartT = {
                     xAxisIndex: [0, 1, 2],
                     start: _zomStart,
                     end: 100,
-                    zoomOnMouseWheel: false,
                     show: true
                 }, {
                     show: false,
@@ -242,8 +241,7 @@ let chartT = {
                     type: 'slider',
                     top: '85%',
                     start: _zomStart,
-                    end: 100,
-                    zoomOnMouseWheel: false
+                    end: 100
                 }],
                 series: [{
                     name: 'Dow-Jones',
@@ -350,38 +348,41 @@ let chartT = {
      * graphic组件-画线
      */
     initGraphic: () => {
-        let that = chartT;
-        let isFirstDraw = true; // 是否第一次画点
-        let data = [];
-        let tempGrid = { gridIndex: 0 }; // 第一象限
         let domDrawBtn = document.querySelector('#drawLine');
         let domClearBtn = document.querySelector('#delLine');
         let domRedrawBtn = document.querySelector('#reDraw');
-        let onPointDragging = (dataIndex, dx, dy) => {
-            let op = _myChart.getOption();
-            op.series[op.series.length - 1].data[dataIndex] = _myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
-            _myChart.setOption(op); // 数据变更
-        };
+        let isFirstDraw = true; // 是否第一次画点
+        let data = [];
+        let seriesIndex = 0;
+        let tempGrid = { gridIndex: 0 }; // 第一象限
+        // let onPointDragging = (dataIndex, dx, dy) => {
+        //     let op = _myChart.getOption();
+        //     op.series[op.series.length - 1].data[dataIndex] = _myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
+        //     _myChart.setOption(op); // 数据变更
+        // };
         // 添加坐标点
         _myChart.getZr().on('click', (params) => {
             let op = _myChart.getOption();
-            if (_isDrawAllow) { // 是否能画点
+            if (_isDrawAllow) { // 允许画点
                 let pointInPixel = [params.offsetX, params.offsetY];
                 let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
                 let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-                if (isFirstDraw) { // 添加新data对象
-                    data = []; // 重置
+                if (isFirstDraw) {
+                    data = [];
                     data.push([xData, yData]); // graphic遍历的点坐标
+                    seriesIndex = op.series.length;
                     op.series.push({
-                        data: data,
+                        data: [
+                            [xData, yData]
+                        ],
                         type: 'line',
-                        smooth: true,
-                        symbolSize: 20,
-                        // roam: true,
+                        smooth: false,
+                        symbolSize: 10,
                         name: 'theLine' // 用name属性区分是否画线
                     })
-                } else { // 给series 添加新的点
-                    op.series[op.series.length - 1].data.push([xData, yData]);
+                } else if (seriesIndex) {
+                    op.series[seriesIndex].data.push([xData, yData]);
+                    data.push([xData, yData]);
                 }
                 _myChart.setOption({
                     series: op.series,
@@ -394,14 +395,28 @@ let chartT = {
                             },
                             invisible: true,
                             draggable: true,
-                            ondrag: echarts.util.curry(onPointDragging, dataIndex),
+                            // ondrag: echarts.util.curry(onPointDragging, dataIndex),
                             z: 100
                         };
                     })
-                });
+                }, false, true);
                 isFirstDraw = false;
             }
         });
+        // seriesName: 'theLine' 监听
+        let allowDrag = false;
+        _myChart.on('mousedown', { seriesName: 'theLine' }, (e) => {
+            console.log(e);
+        });
+        _myChart.on('mousemove', (e) => {
+            // console.log(e);
+            // if (allowDrag) {
+            //     let pointInPixel = [e.offsetX, e.offsetY];
+            //     let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
+            //     let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
+            // }
+        });
+
         // 控制是否可画线
         domDrawBtn.onclick = () => {
             if (!_hasAxisPointer) {
@@ -599,11 +614,9 @@ let chartT = {
         } else {
             op.yAxis.map((ietm, index) => {
                 delete(op.yAxis[index].axisPointer);
-                // op.yAxis[index].axisPointer.show = false;
             });
             op.xAxis.map((item, index) => {
                 delete(op.xAxis[index].axisPointer);
-                // op.xAxis[index].axisPointer.show = false;
             });
             _xIndex = 0;
             op.tooltip[0].show = false; // x轴线显示隐藏
@@ -671,7 +684,7 @@ let chartT = {
                         op.xAxis[index].axisPointer.value = xData;
                     });
                     if (_xIndex < minLenth) {
-                        _zomStart -= 10;
+                        _zomStart -= 1;
                         op.dataZoom[0].start = _zomStart;
                         op.dataZoom[1].start = _zomStart;
                     }
@@ -697,10 +710,7 @@ let chartT = {
                 return false;
             }
             if (e && e.keyCode == 38 && _hasAxisPointer) { // 键盘-上
-
-                if (_zomStart <= 85) {
-                    _zomStart += 5;
-                } else if (_zomStart < 95 && _zomStart > 85) {
+                if (_zomStart < 100) {
                     _zomStart += 1;
                 }
                 minLenth = Math.floor(dataLenth * (_zomStart / 100));
@@ -713,10 +723,8 @@ let chartT = {
                 return false;
             }
             if (e && e.keyCode == 40 && _hasAxisPointer) { // 键盘-下
-                if (_zomStart > 90 && _zomStart <= 100) {
+                if (_zomStart > 0) {
                     _zomStart -= 1;
-                } else if (_zomStart > 5) {
-                    _zomStart -= 5;
                 }
                 op.dataZoom[0].start = _zomStart;
                 op.dataZoom[1].start = _zomStart;

@@ -377,6 +377,7 @@ let chartT = {
                         type: 'line',
                         smooth: true,
                         symbolSize: 20,
+                        // roam: true,
                         name: 'theLine' // 用name属性区分是否画线
                     })
                 } else { // 给series 添加新的点

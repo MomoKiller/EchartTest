@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="http://echarts.baidu.com/dist/echarts.min.js"></script>
+</head>
+
+<body>
+    <div id="main" style="width: 600px;height:400px;"></div>
+    <script>
+        option = {
+
+            title: {
+                text: 'Graph 简单示例'
+            },
+            series: [{
+                type: 'graph',
+                symbolSize: 0,
+                roam: true,
+                edgeSymbol: ['circle', 'arrow'],
+                data: [{
+                    name: '1',
+                    x: 300,
+                    y: 300,
+                    label: {
+                        normal: {
+                            show: false
+                        }
+                    }
+                }, {
+                    name: '2',
+                    x: 800,
+                    y: 300,
+                    label: {
+                        normal: {
+                            show: false
+                        }
+                    }
+                }],
+                links: [{
+                    source: '2',
+                    target: '1',
+                    lineStyle: {
+                        normal: {
+                            color: '#ee0000',
+                            // curveness: 0.2 // 改变弧度
+                        }
+                    }
+                }]
+            }]
+        };
+        var myChart = echarts.init(document.getElementById('main'));
+        myChart.setOption(option);
+    </script>
+</body>
+
+</html>

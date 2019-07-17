@@ -525,7 +525,7 @@ let chartT = {
             for (var i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
                     left: '90',
-                    right: '2%',
+                    right: '70',
                     top: gridParams[i].gridT,
                     height: gridParams[i].gridH
                 });

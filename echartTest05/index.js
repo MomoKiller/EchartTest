@@ -186,20 +186,15 @@ let chartT = {
                     left: 90,
                     right: 70,
                     top: 25,
-                    // height: '43%'
                     height: domH * 0.5 - 50
                 }, {
                     left: 90,
                     right: 70,
-                    // top: '50%',
-                    // height: '20%'
                     top: domH * 0.5 + 25,
                     height: domH * 0.25 - 50
                 }, {
                     left: 90,
                     right: 70,
-                    // top: '75%',
-                    // height: '20%'
                     top: domH * 0.75 + 25,
                     height: domH * 0.25 - 50
                 }],
@@ -234,14 +229,14 @@ let chartT = {
                     xAxisIndex: [0, 1, 2],
                     start: _zomStart,
                     end: 100,
-                    show: true
+                    show: false
                 }, {
-                    show: false,
-                    xAxisIndex: [0, 1, 2],
                     type: 'slider',
+                    xAxisIndex: [0, 1, 2],
                     top: '85%',
                     start: _zomStart,
-                    end: 100
+                    end: 100,
+                    show: false
                 }],
                 series: [{
                     name: 'Dow-Jones',
@@ -351,10 +346,14 @@ let chartT = {
         let domDrawBtn = document.querySelector('#drawLine');
         let domClearBtn = document.querySelector('#delLine');
         let domRedrawBtn = document.querySelector('#reDraw');
-        let isFirstDraw = true; // 是否第一次画点
+        let isFirstDraw = true; // 是否画第一点
         let data = [];
         let seriesIndex = 0;
         let tempGrid = { gridIndex: 0 }; // 第一象限
+        let op = _myChart.getOption();
+        let allowDrag = false; // 是否允许拖动
+        let offsetData = []; // x轴，y轴偏移量
+        let promaryData = []; // series 的深拷贝对象
         // let onPointDragging = (dataIndex, dx, dy) => {
         //     let op = _myChart.getOption();
         //     op.series[op.series.length - 1].data[dataIndex] = _myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
@@ -362,8 +361,8 @@ let chartT = {
         // };
         // 添加坐标点
         _myChart.getZr().on('click', (params) => {
-            let op = _myChart.getOption();
             if (_isDrawAllow) { // 允许画点
+                op = _myChart.getOption();
                 let pointInPixel = [params.offsetX, params.offsetY];
                 let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
                 let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
@@ -380,9 +379,13 @@ let chartT = {
                         symbolSize: 10,
                         name: 'theLine' // 用name属性区分是否画线
                     })
+                    isFirstDraw = false;
                 } else if (seriesIndex) {
                     op.series[seriesIndex].data.push([xData, yData]);
                     data.push([xData, yData]);
+                    isFirstDraw = true;
+                    _isDrawAllow = false;
+                    domDrawBtn.style.color = '#333333';
                 }
                 _myChart.setOption({
                     series: op.series,
@@ -400,21 +403,47 @@ let chartT = {
                         };
                     })
                 }, false, true);
-                isFirstDraw = false;
             }
         });
         // seriesName: 'theLine' 监听
-        let allowDrag = false;
-        _myChart.on('mousedown', { seriesName: 'theLine' }, (e) => {
-            console.log(e);
+        _myChart.getZr().on('mousedown', (e) => {
+            if (e.topTarget && e.topTarget.parent &&
+                e.topTarget.parent.parent &&
+                e.topTarget.parent.parent.__ecComponentInfo &&
+                e.topTarget.parent.parent.__ecComponentInfo.index) {
+                let pointInPixel = [e.offsetX, e.offsetY];
+                let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
+                let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
+                offsetData = [xData, yData];
+                seriesIndex = e.topTarget.parent.parent.__ecComponentInfo.index;
+                promaryData = com.deepClone(op.series);
+                allowDrag = true;
+                // 禁用dataZoom 拖动
+                delete(op.dataZoom[0].type);
+                _myChart.setOption(op, true, true);
+            }
         });
-        _myChart.on('mousemove', (e) => {
-            // console.log(e);
-            // if (allowDrag) {
-            //     let pointInPixel = [e.offsetX, e.offsetY];
-            //     let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
-            //     let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-            // }
+        _myChart.getZr().on('mousemove', (e) => {
+            if (allowDrag) {
+                let pointInPixel = [e.offsetX, e.offsetY];
+                if (_myChart.convertFromPixel('grid', pointInPixel)) {
+                    let xData = _myChart.convertFromPixel('grid', pointInPixel)[0]; // x轴值
+                    let yData = _myChart.convertFromPixel('grid', pointInPixel)[1]; // y轴值
+                    op.series[seriesIndex].data.map((item, index) => {
+                        op.series[seriesIndex].data[index][0] = xData - offsetData[0] + promaryData[seriesIndex].data[index][0];
+                        op.series[seriesIndex].data[index][1] = yData - offsetData[1] + promaryData[seriesIndex].data[index][1];
+                    });
+                    _myChart.setOption(op, true, true);
+                }
+            }
+        });
+        _myChart.getZr().on('mouseup', (e) => {
+            if (allowDrag) {
+                // 放开 dataZoom 拖动
+                op.dataZoom[0].type = 'inside';
+                _myChart.setOption(op, true, true);
+                allowDrag = false;
+            }
         });
 
         // 控制是否可画线
@@ -427,14 +456,6 @@ let chartT = {
                 } else {
                     domDrawBtn.style.color = '#333333';
                 }
-            }
-        };
-        // 重新画线
-        domRedrawBtn.onclick = () => {
-            if (!_hasAxisPointer) {
-                isFirstDraw = true;
-                _isDrawAllow = true;
-                domDrawBtn.style.color = '#333333';
             }
         };
         // 清除线条
@@ -650,7 +671,6 @@ let chartT = {
     bindEvents: () => {
         let that = chartT;
         let op = _myChart.getOption();
-        let resizeTimer = null;
         /**
          * 双击事件
          * params: echarts 事件返回值
@@ -734,7 +754,6 @@ let chartT = {
         };
         /**
          * 窗口大小改变，重绘Echarts
-         * resizeTimer: 重绘timeout
          */
         window.onresize = () => {
             let op = _myChart.getOption();

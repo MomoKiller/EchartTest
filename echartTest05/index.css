@@ -34,9 +34,8 @@ p {
 /* 主图 */
 
 #chartTabel {
-    width: calc(100% - 120px);
+    width: 100%;
     height: 100%;
-    float: left;
 }
 
 
@@ -44,14 +43,16 @@ p {
 
 #chartTool {
     width: 100px;
-    min-height: 200px;
-    margin-left: 10px;
-    margin-top: 50px;
-    padding: 20px 0;
-    float: left;
-    background-color: #eeeeee;
-    border: 1px solid #666666;
-    /* overflow: hidden; */
+    height: 150px;
+    display: none;
+}
+
+#chartTool a {
+    width: 100%;
+    line-height: 20px;
+    display: block;
+    text-align: center;
+    cursor: pointer;
 }
 
 #switch {
@@ -93,25 +94,97 @@ p {
     min-height: 100px;
 }
 
-#switch:hover ul {
+
+/* tool-line */
+
+.tool-line {
+    width: calc(100% - 110px);
+    height: 24px;
+    line-height: 24px;
+    position: absolute;
+    background: #999999;
+    padding: 0 20px 0 90px;
+    font-size: 12px;
+    left: 0;
+}
+
+#grid1 {
+    top: 0;
+}
+
+#grid1>a {
+    padding-right: 15px;
+}
+
+#grid1 .line-tool {
+    float: right;
+    height: 25px;
+}
+
+#grid1 .line-tool>i {
+    display: block;
+    height: 25px;
+    width: 25px;
+    background: url(./asset/bj.png) no-repeat;
+    float: right;
+    cursor: pointer;
+}
+
+#grid1 .line-tool:hover .line-wrap {
     display: block;
 }
 
-#switch:hover ul li:hover div {
-    display: block;
+#grid1 .line-wrap {
+    float: left;
+    margin-right: 10px;
+    display: none;
 }
 
-#switch:hover ul li:hover div p {
-    line-height: 20px
+#grid1 .line-wrap a.draw {
+    display: block;
+    height: 25px;
+    width: 25px;
+    float: left;
+    cursor: pointer;
 }
 
-#chartTool a {
-    width: 100%;
-    line-height: 20px;
+#grid1 .line-wrap a.draw i {
     display: block;
+    height: 25px;
+    width: 25px;
+    background: url(./asset/bj.png) no-repeat;
+}
+
+#grid2 {
+    top: 50%;
+}
+
+#grid3 {
+    top: 75%;
+}
+
+
+/* 右键弹框 */
+
+.mousedown-right {
+    width: 100px;
+    height: 150px;
+    background-color: #eeeeee;
+    position: absolute;
+    border: 1px solid #666666;
+    display: none;
+}
+
+.mousedown-right a {
+    display: block;
+    height: 25px;
+    line-height: 25px;
     text-align: center;
     cursor: pointer;
 }
+
+
+/* 消息提示框 */
 
 #modelBox {
     position: absolute;
@@ -131,61 +204,3 @@ p {
     margin: 0 10px;
     word-break: break-all;
 }
-
-
-/* 画线 */
-
-#lineTool {
-    height: 25px;
-    /* width: 25px; */
-    background-color: #ffffff;
-    position: absolute;
-    top: 10px;
-    right: 130px;
-    cursor: pointer;
-}
-
-#lineTool:hover .line-wrap {
-    display: block;
-}
-
-#lineTool i {
-    display: block;
-    height: 25px;
-    width: 25px;
-    background: url(./asset/bj.png) no-repeat;
-    background-size: 100%;
-    float: right;
-}
-
-#lineTool .line-wrap {
-    float: left;
-    margin-right: 10px;
-    display: none;
-}
-
-#lineTool .line-wrap a {
-    height: 25px;
-    width: 25px;
-    display: block;
-    float: left;
-}
-
-
-/* 直线 */
-
-#straightLine {
-    height: 25px;
-}
-
-#straightLine a {}
-
-
-/* 射线 */
-
-#straightLine {}
-
-
-/* 平行线 */
-
-#straightLine {}

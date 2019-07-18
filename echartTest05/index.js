@@ -378,8 +378,8 @@ let chartT = {
                 seriesIndex = e.topTarget.parent.parent.__ecComponentInfo.index;
                 promaryData = com.deepClone(op.series);
                 allowDrag = true;
-                // delete(op.dataZoom[1].type);// 禁用dataZoom 拖动
-                // _myChart.setOption(op, true, true);
+                delete(op.dataZoom[1].type); // 禁用dataZoom 拖动
+                _myChart.setOption(op, true, true);
             }
             if (e.event && e.event.button == '2') { // 右键事件
                 domMouseRight.style.top = e.offsetY + 'px';
@@ -406,8 +406,9 @@ let chartT = {
         _myChart.getZr().on('mouseup', (e) => {
             if (allowDrag) {
                 allowDrag = false;
-                // op.dataZoom[1].type = 'inside'; // 放开 dataZoom 拖动
-                // _myChart.setOption(op, true, true);
+                op = _myChart.getOption();
+                op.dataZoom[1].type = 'inside'; // 放开 dataZoom 拖动
+                _myChart.setOption(op, true, true);
             }
         });
         // 禁用鼠标右键默认事件

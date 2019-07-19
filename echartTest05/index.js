@@ -355,7 +355,7 @@ let chartT = {
 
         // seriesName: 'theLine' 监听
         _myChart.getZr().on('mousedown', (e) => {
-            console.log(e.topTarget.parent.parent.__ecComponentInfo.index);
+            op = _myChart.getOption();
             domMouRBox.style.display = 'none';
             let pointInPixel = [e.offsetX, e.offsetY];
             let xData = _myChart.convertFromPixel('grid', pointInPixel)[0]; // x轴值
@@ -618,7 +618,7 @@ let chartT = {
                 }
                 op.yAxis[i].axisPointer.show = true;
             }
-            _xIndex = _myChart.convertFromPixel('grid', pointInPixel)[0];
+            _xIndex = _myChart.convertFromPixel({ gridIndex: 0 }, pointInPixel)[0];
             let xData = op.xAxis[0].data[_xIndex]; // x轴值
             op.xAxis.map((item, index) => {
                 op.xAxis[index].axisPointer.show = true;

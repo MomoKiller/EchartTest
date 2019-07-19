@@ -321,37 +321,6 @@ let chartT = {
         let allowDrag = false; // 是否允许拖动
         let offsetData = []; // x轴，y轴偏移量
         let promaryData = []; // series 的深拷贝对象
-        // 添加坐标点
-        _myChart.getZr().on('click', (params) => {
-            // if (_isDrawAllow) { // 允许画点
-            //     op = _myChart.getOption();
-            //     let pointInPixel = [params.offsetX, params.offsetY];
-            //     let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
-            //     let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-            //     if (isFirstDraw) {
-            //         seriesIndex = op.series.length;
-            //         data = [];
-            //         data.push([xData, yData]); // graphic遍历的点坐标
-            //         op.series.push({
-            //             data: [
-            //                 [xData, yData]
-            //             ],
-            //             type: 'line',
-            //             smooth: false,
-            //             symbolSize: 10,
-            //             name: 'theLine' // 用name属性区分是否画线
-            //         })
-            //         isFirstDraw = false;
-            //     } else if (seriesIndex) {
-            //         op.series[seriesIndex].data.push([xData, yData]);
-            //         data.push([xData, yData]);
-            //         isFirstDraw = true;
-            //         _isDrawAllow = false;
-            //         domStrLine.style.color = '#333333';
-            //     }
-            //     _myChart.setOption(op, true, true);
-            // }
-        });
 
         // seriesName: 'theLine' 监听
         _myChart.getZr().on('mousedown', (e) => {
@@ -383,7 +352,7 @@ let chartT = {
             // let pointInPixel = [e.offsetX, e.offsetY];
             // let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
             // let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-            if (_isDrawAllow) { // 允许画点
+            if (_isDrawAllow) { // 添加坐标点
                 op = _myChart.getOption();
                 if (isFirstDraw) {
                     seriesIndex = op.series.length;

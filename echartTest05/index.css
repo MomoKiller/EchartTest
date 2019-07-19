@@ -108,20 +108,16 @@ p {
     left: 0;
 }
 
-#grid1 {
-    top: 0;
-}
-
-#grid1>a {
+.tool-line>a {
     padding-right: 15px;
 }
 
-#grid1 .line-tool {
+.tool-line .line-tool {
     float: right;
     height: 25px;
 }
 
-#grid1 .line-tool>i {
+.tool-line .line-tool>i {
     display: block;
     height: 25px;
     width: 25px;
@@ -130,22 +126,27 @@ p {
     cursor: pointer;
 }
 
-#grid1 .line-tool:hover .line-wrap {
+.tool-line .line-tool:hover .line-wrap {
     display: block;
 }
 
-#grid1 .line-wrap {
+.tool-line .line-wrap {
     float: left;
     margin-right: 10px;
     display: none;
 }
 
-#grid1 .line-wrap a.draw {
+.tool-line .line-wrap a {
     display: block;
     height: 25px;
-    width: 25px;
+    /* width: 25px; */
+    margin-right: 5px;
     float: left;
     cursor: pointer;
+}
+
+#grid1 {
+    top: 0;
 }
 
 #grid1 .line-wrap a.draw i {

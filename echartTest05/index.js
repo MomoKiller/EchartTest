@@ -302,6 +302,35 @@ let chartT = {
             that.bindEvents(); // 事件绑定
 
             that.graphicEvents(); // 增删附图
+
+            that.toolbarEvents(); // toolbar事件
+        }
+    },
+    /**
+     * toolbar 事件
+     */
+    toolbarEvents: () => {
+        let that = this;
+        let domSwitch = document.getElementsByClassName('bar-switch');
+        let domDel = document.getElementsByClassName('bar-graph');
+
+        // domSwitch.map((item, index) => {
+        //     domSwitch[index].addEventListener('click', switchCall);
+        // });
+        // domDel.map((item, index) => {
+        //     domDel[index].addEventListener('click', delCall);
+        // });
+        let switchCall = (e) => { // 回调
+            console.log(e.target.outerHTML);
+        };
+        let delCall = (e) => { // 回调
+            console.log(e);
+        };
+        for (let i = 0; i < domDel.length; i++) {
+            let toolIndex = domSwitch[i].getAttribute('data-index');
+            console.log(domSwitch[i]);
+            domSwitch[i].addEventListener('click', switchCall);
+            domDel[i].addEventListener('click', delCall);
         }
     },
     /**
@@ -437,7 +466,27 @@ let chartT = {
             }
         };
     },
-    // 重绘tool-line
+    /**
+     * 增删主附图
+     * num: 当前grid 个数
+     */
+    getGrid: (num) => {
+        num = parseInt(num);
+        let tempJson = [];
+        let domH = _domSelector.clientHeight || _domSelector.offsetHeight;
+        tempJson.push({ 'gridH': (0.8 - 0.1 * num) * domH - 50, 'gridT': 25 });
+        for (let i = 0; i < (num - 1); i++) {
+            tempJson.push({
+                'gridH': (0.2 + 0.1 * num) * domH / (num - 1) - 50,
+                'gridT': domH * (0.8 - 0.1 * num + i * (0.2 + 0.1 * num) / (num - 1)) + 25
+            });
+        }
+        return tempJson;
+    },
+    /**
+     * 重绘tool-line
+     * isDel: 是否删除标记; true: 删除; false/null/'': 增加
+     */
     toolLineDraw: (num, isDel) => {
         if (isDel) {
             document.getElementById('grid' + (num + 1)).remove();
@@ -466,7 +515,7 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = com.getGrid(_domSelector, _attachedNum);
+            gridParams = that.getGrid(_attachedNum);
             let tempGrid = [];
             for (let i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
@@ -509,7 +558,7 @@ let chartT = {
             else
                 return;
             op = _myChart.getOption();
-            gridParams = com.getGrid(_domSelector, _attachedNum);
+            gridParams = that.getGrid(_attachedNum);
             let tempGrid = [];
             for (let i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
@@ -699,8 +748,8 @@ let chartT = {
                         op.xAxis[index].axisPointer.value = xData;
                     });
                     if (_xIndex < minLenth) {
-                        _zomStart--;
-                        _zomEnd--;
+                        _zomStart -= 100 / dataLenth;
+                        _zomEnd -= 100 / dataLenth;
                         op.dataZoom[0].start = _zomStart;
                         op.dataZoom[0].end = _zomEnd;
                     }
@@ -719,8 +768,8 @@ let chartT = {
                         op.xAxis[index].axisPointer.value = xData;
                     });
                     if (_xIndex > maxLenth) {
-                        _zomStart++;
-                        _zomEnd++;
+                        _zomStart += 100 / dataLenth;
+                        _zomEnd += 100 / dataLenth;
                         op.dataZoom[0].start = _zomStart;
                         op.dataZoom[0].end = _zomEnd;
                     }
@@ -763,7 +812,7 @@ let chartT = {
          */
         window.onresize = () => {
             let op = _myChart.getOption();
-            let gridParams = com.getGrid(_domSelector, _attachedNum);
+            let gridParams = that.getGrid(_attachedNum);
             op.grid.map((item, index) => {
                 op.grid[index].top = gridParams[index].gridT;
                 op.grid[index].height = gridParams[index].gridH;

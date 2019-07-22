@@ -132,21 +132,5 @@ let com = {
             volumns: volumns,
             volumns2: volumns
         };
-    },
-    /**
-     * 增删主附图
-     */
-    getGrid: (dom, num) => {
-        num = parseInt(num);
-        let tempJson = [];
-        let domH = dom.clientHeight || dom.offsetHeight;
-        tempJson.push({ 'gridH': (0.8 - 0.1 * num) * domH - 50, 'gridT': 25 });
-        for (let i = 0; i < (num - 1); i++) {
-            tempJson.push({
-                'gridH': (0.2 + 0.1 * num) * domH / (num - 1) - 50,
-                'gridT': domH * (0.8 - 0.1 * num + i * (0.2 + 0.1 * num) / (num - 1)) + 25
-            });
-        }
-        return tempJson;
     }
 };

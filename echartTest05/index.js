@@ -5,7 +5,8 @@ let _myChart = ''; // ECHARTS 实例对象
 let _data = []; // 数据对象
 let _hasAxisPointer = false; // 点击是否给了坐标
 let _loopBox = ''; // 模拟弹框
-let _zomStart = 90;
+let _zomStart = 90; // dataZoom-start
+let _zomEnd = 100; // dataZoom-end
 let _xIndex = 0; // x轴索引
 let _domSelector = ''; // 挂载点选择器
 let _isDrawAllow = false; // 是否让画点
@@ -38,7 +39,7 @@ let chartT = {
         //     j_password: 'test1234',
         //     j_cip: '47.75.131.161'
         // };
-        // com.postJSON(that.api.login, params, (result) => {
+        // com.loginJSON(that.api.login, params, (result) => {
         //     if (result && result.code == '000000') {
         //         that.getTimeData();
         //         that.getCandleData();
@@ -94,56 +95,9 @@ let chartT = {
         }
     },
     /**
-     * 模拟弹框
-     */
-    openBox: (params) => {
-        let that = chartT;
-        let xLength = _data.categoryData.length;
-        let helfLen = Math.floor(xLength * (1 + _zomStart / 100) / 2);
-        if (params && params.length) {
-            let xIndex = _data.categoryData.indexOf(params[0].xData);
-            _xIndex = xIndex; //
-            let tempHtml = '<ul>';
-            params.map((item) => {
-                tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
-            })
-            tempHtml += '</ul>';
-            _loopBox.innerHTML = tempHtml;
-            _loopBox.style.display = 'block';
-            if (xIndex < helfLen) {
-                _loopBox.style.right = 0;
-                _loopBox.style.left = '';
-            } else {
-                _loopBox.style.left = 0;
-                _loopBox.style.right = '';
-            }
-        } else {
-            _loopBox.style.display = 'none';
-        }
-    },
-    /**
-     * 数据拆分
-     */
-    splitData: (arr) => {
-        let categoryData = [];
-        let values = [];
-        let volumns = [];
-        for (let i = 0; i < arr.length; i++) {
-            categoryData.push(arr[i].splice(0, 1)[0]);
-            values.push(arr[i]);
-            volumns.push(arr[i][4]);
-        }
-        return {
-            categoryData: categoryData,
-            values: values,
-            volumns: volumns,
-            volumns2: volumns
-        };
-    },
-    /**
      * 鼠标移动回调
      */
-    moveCallback: (params) => {
+    toolCallback: (params) => {
         let that = chartT;
         let tempArr = [];
         params.map((item, index) => {
@@ -161,7 +115,7 @@ let chartT = {
     formateEcharts: (result) => {
         let that = chartT;
         if (result && result.length) {
-            _data = that.splitData(result);
+            _data = com.splitData(result);
             let domH = _domSelector.clientHeight || _domSelector.offsetHeight;
             let option = {
                 backgroundColor: '#eee',
@@ -170,11 +124,9 @@ let chartT = {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'cross',
-                        crossStyle: {
-                            type: 'solid'
-                        }
+                        crossStyle: { type: 'solid' }
                     },
-                    formatter: (params) => that.moveCallback(params),
+                    formatter: (params) => that.toolCallback(params),
                     show: false
                 }],
                 axisPointer: {
@@ -184,64 +136,80 @@ let chartT = {
                 },
                 grid: [{
                     left: 90,
-                    right: 70,
+                    right: 20,
                     top: 25,
-                    // height: '43%'
                     height: domH * 0.5 - 50
                 }, {
                     left: 90,
-                    right: 70,
-                    // top: '50%',
-                    // height: '20%'
+                    right: 20,
                     top: domH * 0.5 + 25,
                     height: domH * 0.25 - 50
                 }, {
                     left: 90,
-                    right: 70,
-                    // top: '75%',
-                    // height: '20%'
+                    right: 20,
                     top: domH * 0.75 + 25,
                     height: domH * 0.25 - 50
                 }],
                 xAxis: [{
                     type: 'category',
-                    splitLine: { show: true },
                     gridIndex: 0,
-                    data: _data.categoryData
+                    data: _data.categoryData,
+                    splitLine: { show: true },
+                    // axisLine: { show: false },
+                    // axisTick: { show: false }
                 }, {
                     type: 'category',
-                    splitLine: { show: true },
                     gridIndex: 1,
-                    data: _data.categoryData
+                    data: _data.categoryData,
+                    splitLine: { show: true },
+                    // axisLine: { show: false },
+                    // axisTick: { show: false }
                 }, {
                     type: 'category',
                     gridIndex: 2,
                     data: _data.categoryData,
-                    splitLine: { show: true }
+                    splitLine: { show: true },
+                    // axisLine: { show: false },
+                    // axisTick: { show: false }
                 }],
                 yAxis: [{
                     scale: true,
-                    gridIndex: 0
+                    gridIndex: 0,
+                    splitLine: { show: true },
+                    // axisLine: {
+                    //     lineStyle: { color: '#ccc' }
+                    // },
+                    // axisLabel: { color: '#333' },
+                    // axisTick: { show: false }
                 }, {
                     scale: true,
-                    gridIndex: 1
+                    gridIndex: 1,
+                    // splitLine: { show: true },
+                    // axisLine: {
+                    //     lineStyle: { color: '#ccc' }
+                    // },
+                    // axisLabel: { color: '#333' },
+                    // axisTick: { show: false }
                 }, {
                     scale: true,
-                    gridIndex: 2
+                    gridIndex: 2,
+                    // splitLine: { show: true },
+                    // axisLine: {
+                    //     lineStyle: { color: '#ccc' }
+                    // },
+                    // axisLabel: { color: '#333' },
+                    // axisTick: { show: false }
                 }],
                 dataZoom: [{
+                    type: 'slider',
+                    xAxisIndex: [0, 1, 2],
+                    start: _zomStart,
+                    end: _zomEnd,
+                    show: false
+                }, {
                     type: 'inside',
                     xAxisIndex: [0, 1, 2],
-                    start: _zomStart,
-                    end: 100,
-                    show: true
-                }, {
-                    show: false,
-                    xAxisIndex: [0, 1, 2],
-                    type: 'slider',
-                    top: '85%',
-                    start: _zomStart,
-                    end: 100
+                    show: false
                 }],
                 series: [{
                     name: 'Dow-Jones',
@@ -257,19 +225,15 @@ let chartT = {
                     markLine: {
                         symbol: ['none', 'none'],
                         data: [{
-                                name: 'min line on close',
-                                type: 'min',
-                                valueDim: 'close',
-                                lineStyle: {
-                                    color: '#ee0000'
-                                }
-                            },
-                            {
-                                name: 'max line on close',
-                                type: 'max',
-                                valueDim: 'close'
-                            }
-                        ]
+                            name: 'min line on close',
+                            type: 'min',
+                            valueDim: 'close',
+                            lineStyle: { color: '#ee0000' }
+                        }, {
+                            name: 'max line on close',
+                            type: 'max',
+                            valueDim: 'close'
+                        }]
                     },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
@@ -278,9 +242,7 @@ let chartT = {
                     name: 'MA5',
                     type: 'line',
                     smooth: true,
-                    lineStyle: {
-                        normal: { opacity: 0.5 }
-                    },
+                    lineStyle: { normal: { opacity: 0.5 } },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
                     showSymbol: false,
@@ -289,9 +251,7 @@ let chartT = {
                     name: 'MA10',
                     type: 'line',
                     smooth: true,
-                    lineStyle: {
-                        normal: { opacity: 0.5 }
-                    },
+                    lineStyle: { normal: { opacity: 0.5 } },
                     xAxisIndex: 0,
                     yAxisIndex: 0,
                     showSymbol: false,
@@ -335,42 +295,90 @@ let chartT = {
             };
             _myChart.setOption(option);
 
-            that.initGraphic(); // graphic组件
+            that.graphicLine(); // graphic组件
 
-            that.initSwitch(); // 切换图表
+            that.switchEvents(); // 切换图表
 
             that.bindEvents(); // 事件绑定
 
-            that.addDelGraphic(); // 增删附图
+            that.graphicEvents(); // 增删附图
+
+            that.toolbarEvents(); // toolbar事件
+        }
+    },
+    /**
+     * toolbar 事件
+     */
+    toolbarEvents: () => {
+        let that = chartT;
+        let domSwitch = document.getElementsByClassName('graph-switch');
+        let domDel = document.getElementsByClassName('graph-del');
+        let switchCall = (e) => { // 回调
+            let barIndex = e.target.getAttribute('data-index');
+        };
+        let delCall = (e) => { // 回调
+            let barIndex = e.target.getAttribute('data-index');
+            that.delGraph(barIndex);
+        };
+        for (let i = 0; i < domDel.length; i++) {
+            domSwitch[i].addEventListener('click', switchCall);
+            domDel[i].addEventListener('click', delCall);
         }
     },
     /**
      * graphic组件-画线
      */
-    initGraphic: () => {
-        let domDrawBtn = document.querySelector('#drawLine');
-        let domClearBtn = document.querySelector('#delLine');
-        let domRedrawBtn = document.querySelector('#reDraw');
-        let isFirstDraw = true; // 是否第一次画点
+    graphicLine: () => {
+        let domStrLine = document.querySelector('#straightLine'); // 直线
+        let domHalLine = document.querySelector('#halfLine'); // 射线
+        let domParLine = document.querySelector('#parallelLine'); // 平行线
+        let domClearBtn = document.querySelector('#clearnLine');
+        let domMouRBox = document.querySelector('.mousedown-right');
+        let isFirstDraw = true; // 是否画第一点
         let data = [];
         let seriesIndex = 0;
         let tempGrid = { gridIndex: 0 }; // 第一象限
-        // let onPointDragging = (dataIndex, dx, dy) => {
-        //     let op = _myChart.getOption();
-        //     op.series[op.series.length - 1].data[dataIndex] = _myChart.convertFromPixel(tempGrid, [dx.offsetX, dx.offsetY]);
-        //     _myChart.setOption(op); // 数据变更
-        // };
-        // 添加坐标点
-        _myChart.getZr().on('click', (params) => {
-            let op = _myChart.getOption();
-            if (_isDrawAllow) { // 允许画点
-                let pointInPixel = [params.offsetX, params.offsetY];
-                let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
-                let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
+        let op = _myChart.getOption();
+        let allowDrag = false; // 是否允许拖动
+        let offsetData = []; // x轴，y轴偏移量
+        let promaryData = []; // series 的深拷贝对象
+
+        // seriesName: 'theLine' 监听
+        _myChart.getZr().on('mousedown', (e) => {
+            op = _myChart.getOption();
+            domMouRBox.style.display = 'none';
+            let pointInPixel = [e.offsetX, e.offsetY];
+            let xData = _myChart.convertFromPixel('grid', pointInPixel)[0]; // x轴值
+            let yData = _myChart.convertFromPixel('grid', pointInPixel)[1]; // y轴值
+            if (e.topTarget &&
+                e.topTarget.parent &&
+                e.topTarget.parent.parent &&
+                e.topTarget.parent.parent.__ecComponentInfo &&
+                e.topTarget.parent.parent.__ecComponentInfo.index) {
+                offsetData = [xData, yData];
+                seriesIndex = e.topTarget.parent.parent.__ecComponentInfo.index;
+                promaryData = com.deepClone(op.series);
+                allowDrag = true;
+                delete(op.dataZoom[1].type); // 禁用dataZoom 拖动
+                _myChart.setOption(op, true, true);
+            }
+
+            if (e.event && e.event.button == '2') { // 右键事件
+                domMouRBox.style.top = e.offsetY + 'px';
+                domMouRBox.style.left = e.offsetX + 'px';
+                domMouRBox.style.display = 'block';
+            }
+            _xIndex = xData; // _xIndex 重新赋值
+
+            // let pointInPixel = [e.offsetX, e.offsetY];
+            // let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
+            // let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
+            if (_isDrawAllow) { // 添加坐标点
+                op = _myChart.getOption();
                 if (isFirstDraw) {
+                    seriesIndex = op.series.length;
                     data = [];
                     data.push([xData, yData]); // graphic遍历的点坐标
-                    seriesIndex = op.series.length;
                     op.series.push({
                         data: [
                             [xData, yData]
@@ -380,61 +388,60 @@ let chartT = {
                         symbolSize: 10,
                         name: 'theLine' // 用name属性区分是否画线
                     })
+                    isFirstDraw = false;
                 } else if (seriesIndex) {
                     op.series[seriesIndex].data.push([xData, yData]);
                     data.push([xData, yData]);
+                    isFirstDraw = true;
+                    _isDrawAllow = false;
+                    domStrLine.style.color = '#333333';
                 }
-                _myChart.setOption({
-                    series: op.series,
-                    graphic: echarts.util.map(data, function(item, dataIndex) {
-                        return {
-                            type: 'circle',
-                            position: _myChart.convertToPixel('grid', item),
-                            shape: {
-                                r: 10
-                            },
-                            invisible: true,
-                            draggable: true,
-                            // ondrag: echarts.util.curry(onPointDragging, dataIndex),
-                            z: 100
-                        };
-                    })
-                }, false, true);
-                isFirstDraw = false;
+                _myChart.setOption(op, true, true);
             }
         });
-        // seriesName: 'theLine' 监听
-        let allowDrag = false;
-        _myChart.on('mousedown', { seriesName: 'theLine' }, (e) => {
-            console.log(e);
+        _myChart.getZr().on('mousemove', (e) => {
+            if (allowDrag) {
+                op = _myChart.getOption();
+                let pointInPixel = [e.offsetX, e.offsetY];
+                if (_myChart.convertFromPixel('grid', pointInPixel)) {
+                    let xData = _myChart.convertFromPixel('grid', pointInPixel)[0]; // x轴值
+                    let yData = _myChart.convertFromPixel('grid', pointInPixel)[1]; // y轴值
+                    op.series[seriesIndex].data.map((item, index) => {
+                        op.series[seriesIndex].data[index][0] = xData - offsetData[0] + promaryData[seriesIndex].data[index][0];
+                        op.series[seriesIndex].data[index][1] = yData - offsetData[1] + promaryData[seriesIndex].data[index][1];
+                    });
+                    _myChart.setOption(op, true, true);
+                }
+            }
         });
-        _myChart.on('mousemove', (e) => {
-            // console.log(e);
-            // if (allowDrag) {
-            //     let pointInPixel = [e.offsetX, e.offsetY];
-            //     let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
-            //     let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
-            // }
+        _myChart.getZr().on('mouseup', (e) => {
+            if (allowDrag) {
+                allowDrag = false;
+                op = _myChart.getOption();
+                op.dataZoom[1].type = 'inside'; // 放开 dataZoom 拖动
+                _myChart.setOption(op, true, true);
+            }
+        });
+
+        // 禁用鼠标右键默认事件
+        document.oncontextmenu = () => { return false; };
+        // 监听鼠标滚动事件
+        _myChart.getZr().on('mousewheel', (e) => {
+            op = _myChart.getOption();
+            _zomStart = op.dataZoom[0].start;
+            _zomEnd = op.dataZoom[0].end;
         });
 
         // 控制是否可画线
-        domDrawBtn.onclick = () => {
+        domStrLine.onclick = () => {
             if (!_hasAxisPointer) {
                 _isDrawAllow = !_isDrawAllow; // 是否让画线
                 if (_isDrawAllow) {
-                    domDrawBtn.style.color = '#ee0000';
+                    domStrLine.style.color = '#ee0000';
                     isFirstDraw = true;
                 } else {
-                    domDrawBtn.style.color = '#333333';
+                    domStrLine.style.color = '#333333';
                 }
-            }
-        };
-        // 重新画线
-        domRedrawBtn.onclick = () => {
-            if (!_hasAxisPointer) {
-                isFirstDraw = true;
-                _isDrawAllow = true;
-                domDrawBtn.style.color = '#333333';
             }
         };
         // 清除线条
@@ -442,7 +449,7 @@ let chartT = {
             if (!_hasAxisPointer) {
                 op = _myChart.getOption();
                 _isDrawAllow = false;
-                domDrawBtn.style.color = '#333333';
+                domStrLine.style.color = '#333333';
                 op.series = op.series.filter((item, index) => {
                     return op.series[index].name != 'theLine';
                 })
@@ -453,6 +460,7 @@ let chartT = {
     },
     /**
      * 增删主附图
+     * num: 当前grid 个数
      */
     getGrid: (num) => {
         num = parseInt(num);
@@ -467,10 +475,100 @@ let chartT = {
         }
         return tempJson;
     },
-    addDelGraphic: () => {
+    /**
+     * 重绘tool-line
+     * isDel: 是否删除标记; true: 删除; false/null/'': 增加
+     */
+    toolLineDraw: (num, isDel) => {
+        if (isDel) {
+            document.getElementById('grid' + (num + 1)).remove();
+        }
+        let domGrid = null;
+        for (let i = 0; i < num - 1; i++) {
+            domGrid = document.getElementById('grid' + (i + 2));
+            if (domGrid == null) {
+                _domSelector.insertAdjacentHTML('afterend', '<div class="tool-line" id="grid' + (i + 2) + '"></div>');
+                domGrid = document.getElementById('grid' + (i + 2));
+            }
+            domGrid.style.top = 80 - 10 * num + i * (20 + 10 * num) / (num - 1) + '%';
+        }
+    },
+    /**
+     * 删除附图
+     * index: 附图索引；不传从最后删除
+     */
+    delGraph: (barIndex) => {
+        if (_attachedNum > 2)
+            _attachedNum--;
+        else
+            return;
+
+        let that = chartT;
+        let op = _myChart.getOption();
+        let tempOp = com.deepClone(op);
+        let gridParams = that.getGrid(_attachedNum);
+        let tempGrid = [];
+        // if (!barIndex) {
+        for (let i = 0; i < _attachedNum; i++) {
+            tempGrid.push({
+                left: 90,
+                right: 20,
+                top: gridParams[i].gridT,
+                height: gridParams[i].gridH
+            });
+        }
+        tempOp.grid = tempGrid;
+        tempOp.xAxis = op.xAxis.filter((item, index) => {
+            return op.xAxis[index].gridIndex != _attachedNum;
+        });
+        tempOp.yAxis = op.yAxis.filter((item, index) => {
+            return op.yAxis[index].gridIndex != _attachedNum;
+        });
+        tempOp.series = op.series.filter((item, index) => {
+            return op.series[index].xAxisIndex != _attachedNum;
+        });
+        tempOp.dataZoom[0].xAxisIndex.pop();
+        tempOp.dataZoom[1].xAxisIndex.pop();
+        // } else { // 根据barIndex 修改
+        //     for (let i = 0; i < _attachedNum; i++) {
+        //         tempGrid.push({
+        //             left: 90,
+        //             right: 20,
+        //             top: gridParams[i].gridT,
+        //             height: gridParams[i].gridH
+        //         });
+        //         if (tempOp.xAxis[i].gridIndex > barIndex) {
+        //             tempOp.xAxis[i] = tempOp.xAxis[i + 1];
+        //         }
+        //         if (tempOp.yAxis[i].gridIndex > barIndex) {
+        //             tempOp.yAxis[i] = tempOp.yAxis[i + 1];
+        //         }
+        //         if (tempOp.series[i].gridIndex > barIndex) {
+        //             tempOp.series[i] = tempOp.series[i + 1];
+        //         }
+        //     }
+        //     delete(tempOp.xAxis[_attachedNum]);
+        //     delete(tempOp.yAxis[_attachedNum]);
+        //     delete(tempOp.series[_attachedNum]);
+        //     tempOp.grid = tempGrid;
+        //     tempOp.dataZoom[0].xAxisIndex.pop();
+        //     tempOp.dataZoom[1].xAxisIndex.pop();
+        // }
+
+
+        _myChart.clear();
+        _myChart.dispose();
+        _myChart = echarts.init(_domSelector);
+        that.toolLineDraw(_attachedNum, true);
+        _myChart.setOption(tempOp, true, true);
+        that.graphicLine(); // graphic组件
+        that.bindEvents(); // 事件绑定
+    },
+    graphicEvents: () => {
         let that = chartT;
         let domAdd = document.querySelector('#addGraph');
         let domDel = document.querySelector('#delGraph');
+        let domMouRBox = document.querySelector('.mousedown-right');
         let op = _myChart.getOption();
         let gridParams = [];
         // 添加附图
@@ -482,10 +580,10 @@ let chartT = {
             op = _myChart.getOption();
             gridParams = that.getGrid(_attachedNum);
             let tempGrid = [];
-            for (var i = 0; i < _attachedNum; i++) {
+            for (let i = 0; i < _attachedNum; i++) {
                 tempGrid.push({
-                    left: '90',
-                    right: '70',
+                    left: 90,
+                    right: 20,
                     top: gridParams[i].gridT,
                     height: gridParams[i].gridH
                 });
@@ -506,58 +604,26 @@ let chartT = {
                 type: 'line',
                 xAxisIndex: _attachedNum - 1,
                 yAxisIndex: _attachedNum - 1,
+                showSymbol: false,
                 data: _data.volumns
             });
             op.dataZoom[0].xAxisIndex.push(_attachedNum - 1);
             op.dataZoom[1].xAxisIndex.push(_attachedNum - 1);
-            _myChart.clear();
+            // _myChart.clear();
+            that.toolLineDraw(_attachedNum, false);
             _myChart.setOption(op, true, true);
+            domMouRBox.style.display = 'none';
         });
         // 删除附图
         domDel.addEventListener('click', (e) => {
-            if (_attachedNum > 2)
-                _attachedNum--;
-            else
-                return;
-            op = _myChart.getOption();
-            gridParams = that.getGrid(_attachedNum);
-            let tempGrid = [];
-            for (var i = 0; i < _attachedNum; i++) {
-                tempGrid.push({
-                    left: '90',
-                    right: '70',
-                    top: gridParams[i].gridT,
-                    height: gridParams[i].gridH
-                });
-            }
-
-            op.grid = tempGrid;
-            op.xAxis = op.xAxis.filter((item, index) => {
-                return op.xAxis[index].gridIndex != _attachedNum;
-            });
-            op.yAxis = op.yAxis.filter((item, index) => {
-                return op.yAxis[index].gridIndex != _attachedNum;
-            });
-            op.series = op.series.filter((item, index) => {
-                return op.series[index].xAxisIndex != _attachedNum;
-            });
-            op.dataZoom[0].xAxisIndex.pop();
-            op.dataZoom[1].xAxisIndex.pop();
-            let tempOp = com.deepClone(op);
-            _myChart.clear();
-            _myChart.dispose();
-            _myChart = echarts.init(_domSelector);
-            _myChart.setOption(tempOp, true, true);
-
-            that.initGraphic(); // graphic组件
-            that.bindEvents(); // 事件绑定
-
+            domMouRBox.style.display = 'none';
+            that.delGraph();
         });
     },
     /**
      * 切换图表 
      */
-    initSwitch: () => {
+    switchEvents: () => {
         let domSwitch = document.querySelector('#switch ul');
         domSwitch.addEventListener('click', (e) => {
             if (e.target.getAttribute('data-index') != null) {
@@ -607,7 +673,7 @@ let chartT = {
             });
             op.tooltip[0].show = true; // x轴线显示隐藏
             op.dataZoom[0].start = _zomStart;
-            op.dataZoom[1].start = _zomStart;
+            op.dataZoom[0].end = _zomEnd;
             let param = that.getXYArr(_xIndex);
             that.openBox(param);
             _hasAxisPointer = true;
@@ -618,7 +684,7 @@ let chartT = {
             op.xAxis.map((item, index) => {
                 delete(op.xAxis[index].axisPointer);
             });
-            _xIndex = 0;
+            // _xIndex = 0;
             op.tooltip[0].show = false; // x轴线显示隐藏
             _hasAxisPointer = false;
             that.openBox();
@@ -632,7 +698,6 @@ let chartT = {
      * 返回的数据类型: [{name: null, value: nnull},{}...{}]
      */
     getXYArr: (index) => {
-        let that = chartT;
         let op = _myChart.getOption();
         let xyArr = [];
         for (let i = 0; i < op.series.length; i++) {
@@ -645,12 +710,38 @@ let chartT = {
         return xyArr;
     },
     /**
+     * 模拟弹框
+     */
+    openBox: (params) => {
+        let xLength = _data.categoryData.length;
+        let helfLen = Math.floor(xLength * (_zomEnd + _zomStart) / 200);
+        if (params && params.length) {
+            let xIndex = _data.categoryData.indexOf(params[0].xData);
+            _xIndex = xIndex; //
+            let tempHtml = '<ul>';
+            params.map((item) => {
+                tempHtml += '<li>' + item.name + '-' + item.value + '</li>';
+            })
+            tempHtml += '</ul>';
+            _loopBox.innerHTML = tempHtml;
+            _loopBox.style.display = 'block';
+            if (xIndex < helfLen) {
+                _loopBox.style.right = 0;
+                _loopBox.style.left = '';
+            } else {
+                _loopBox.style.left = 0;
+                _loopBox.style.right = '';
+            }
+        } else {
+            _loopBox.style.display = 'none';
+        }
+    },
+    /**
      * 事件绑定
      */
     bindEvents: () => {
         let that = chartT;
         let op = _myChart.getOption();
-        let resizeTimer = null;
         /**
          * 双击事件
          * params: echarts 事件返回值
@@ -674,6 +765,7 @@ let chartT = {
             let e = event || window.event || arguments.callee.caller.arguments[0];
             let dataLenth = _data.categoryData.length;
             let minLenth = Math.floor(dataLenth * (_zomStart / 100));
+            let maxLenth = Math.floor(dataLenth * (_zomEnd / 100));
             let op = _myChart.getOption();
             let xData = 0;
             if (e && e.keyCode == 37 && _hasAxisPointer) { // 键盘-左
@@ -684,9 +776,10 @@ let chartT = {
                         op.xAxis[index].axisPointer.value = xData;
                     });
                     if (_xIndex < minLenth) {
-                        _zomStart -= 1;
+                        _zomStart -= 100 / dataLenth;
+                        _zomEnd -= 100 / dataLenth;
                         op.dataZoom[0].start = _zomStart;
-                        op.dataZoom[1].start = _zomStart;
+                        op.dataZoom[0].end = _zomEnd;
                     }
                     _myChart.clear();
                     _myChart.setOption(op, true, true);
@@ -702,6 +795,12 @@ let chartT = {
                     op.xAxis.map((item, index) => {
                         op.xAxis[index].axisPointer.value = xData;
                     });
+                    if (_xIndex > maxLenth) {
+                        _zomStart += 100 / dataLenth;
+                        _zomEnd += 100 / dataLenth;
+                        op.dataZoom[0].start = _zomStart;
+                        op.dataZoom[0].end = _zomEnd;
+                    }
                     _myChart.clear();
                     _myChart.setOption(op, true, true);
                     let paramData = that.getXYArr(_xIndex);
@@ -718,7 +817,7 @@ let chartT = {
                     _xIndex = minLenth;
                 }
                 op.dataZoom[0].start = _zomStart;
-                op.dataZoom[1].start = _zomStart;
+                op.dataZoom[0].end = _zomEnd;
                 _myChart.setOption(op, true, true);
                 return false;
             }
@@ -726,15 +825,18 @@ let chartT = {
                 if (_zomStart > 0) {
                     _zomStart -= 1;
                 }
+                maxLenth = Math.floor(dataLenth * (_zomEnd / 100));
+                if (_xIndex > maxLenth) { // 重设_xIndex
+                    _xIndex = maxLenth;
+                }
                 op.dataZoom[0].start = _zomStart;
-                op.dataZoom[1].start = _zomStart;
+                op.dataZoom[0].end = _zomEnd;
                 _myChart.setOption(op, true, true);
                 return false;
             }
         };
         /**
          * 窗口大小改变，重绘Echarts
-         * resizeTimer: 重绘timeout
          */
         window.onresize = () => {
             let op = _myChart.getOption();

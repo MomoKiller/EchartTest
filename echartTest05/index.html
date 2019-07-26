@@ -13,9 +13,6 @@
         <div id="chartTabel" class="chart-table"></div>
         <!--  工具栏  -->
         <div id="chartTool" class="chart-tool">
-            <a id="drawLine">画线</a>
-            <a id="reDraw">重新画线</a>
-            <a id="delLine">删除线</a>
             <a id="switch">
                 切换图表
                 <ul>
@@ -60,16 +57,55 @@
                     </li>
                 </ul>
             </a>
-            <a id="addGraph">添加附图</a>
-            <a id="delGraph">删除附图</a>
         </div>
-        <div id="lineTool">
+        <!--  画线栏  -->
+        <!-- <div id="lineTool">
             <i></i>
             <div class="line-wrap">
-                <a class="" id="straightLine" title="直线"><i></i></a>
-                <a class="" id="halfLine" title="射线"><i></i></a>
-                <a class="" id="parallelLine" title="平行线"><i></i></a>
+                <a id="straightLine" title="直线"><i></i></a>
+                <a id="halfLine" title="射线"><i></i></a>
+                <a id="parallelLine" title="平行线"><i></i></a>
             </div>
+        </div> -->
+        <!--  toolbar  -->
+        <div class="tool-line" id="grid1">
+            <a>MA5:1234</a>
+            <a>MA10:1234</a>
+            <a>MA20:1234</a>
+            <a>MA30:1234</a>
+            <div class="line-tool">
+                <i></i>
+                <div class="line-wrap">
+                    <a class="draw" id="straightLine" title="直线"><i></i></a>
+                    <a class="draw" id="halfLine" title="射线"><i></i></a>
+                    <a class="draw" id="parallelLine" title="平行线"><i></i></a>
+                    <a class="draw" id="clearnLine" title="删除线"><i></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="tool-line" id="grid2">
+            <div class="line-tool">
+                <i></i>
+                <div class="line-wrap">
+                    <a class="graph-switch" data-index="1">切换指标</a>
+                    <a class="graph-del" data-index="1">删除附图</a>
+                </div>
+            </div>
+        </div>
+        <div class="tool-line" id="grid3">
+            <div class="line-tool">
+                <i></i>
+                <div class="line-wrap">
+                    <a class="graph-switch" data-index="2">切换指标</a>
+                    <a class="graph-del" data-index="2">删除附图</a>
+                </div>
+            </div>
+        </div>
+
+        <!--  右键选项  -->
+        <div class="mousedown-right">
+            <a id="addGraph">添加附图</a>
+            <a id="delGraph">删除附图</a>
         </div>
     </div>
     <script src="./func-common.js"></script>

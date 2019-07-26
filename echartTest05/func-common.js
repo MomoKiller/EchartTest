@@ -41,7 +41,6 @@ let com = {
      * url: 接口;  data: 数据参数; call: 回调函数
      */
     postJSON: (url, data, call) => {
-        let isLogin = url.indexOf('login') > -1 ? true : false;
         let xmlhttp = null;
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
@@ -63,9 +62,39 @@ let com = {
             }
         };
         xmlhttp.open("POST", url, true);
-        xmlhttp.setRequestHeader("Content-type", isLogin ? "application/x-www-form-urlencoded" : "application/json");
+        xmlhttp.setRequestHeader("Content-type", "application/json");
         xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-        xmlhttp.send(isLogin ? requestData : JSON.stringify(data));
+        xmlhttp.send(JSON.stringify(data));
+    },
+    /**
+     * 接口post请求
+     * url: 接口;  data: 数据参数; call: 回调函数
+     */
+    loginJSON: (url, data, call) => {
+        let xmlhttp = null;
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        if (xmlhttp == null) {
+            console.log('浏览器不支持XMLHttp');
+            return;
+        }
+        let requestData = '';
+        for (let name in data) {
+            requestData += name + '=' + data[name] + '&';
+        }
+        requestData = requestData == '' ? '' : requestData.substring(0, requestData.length - 1);
+        xmlhttp.onreadystatechange = () => {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                call(JSON.parse(xmlhttp.responseText));
+            }
+        };
+        xmlhttp.open("POST", url, true);
+        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        xmlhttp.send(requestData);
     },
     /**
      * 深拷贝
@@ -86,7 +115,22 @@ let com = {
         return objClone;
     },
     /**
-     * 图表配置项
+     * 数据拆分
      */
-
+    splitData: (arr) => {
+        let categoryData = [];
+        let values = [];
+        let volumns = [];
+        for (let i = 0; i < arr.length; i++) {
+            categoryData.push(arr[i].splice(0, 1)[0]);
+            values.push(arr[i]);
+            volumns.push(arr[i][4]);
+        }
+        return {
+            categoryData: categoryData,
+            values: values,
+            volumns: volumns,
+            volumns2: volumns
+        };
+    }
 };

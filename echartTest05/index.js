@@ -337,7 +337,6 @@ let chartT = {
         let isFirstDraw = true; // 是否画第一点
         let data = [];
         let seriesIndex = 0;
-        let tempGrid = { gridIndex: 0 }; // 第一象限
         let op = _myChart.getOption();
         let allowDrag = false; // 是否允许拖动
         let offsetData = []; // x轴，y轴偏移量
@@ -370,9 +369,6 @@ let chartT = {
             }
             _xIndex = xData; // _xIndex 重新赋值
 
-            // let pointInPixel = [e.offsetX, e.offsetY];
-            // let xData = _myChart.convertFromPixel(tempGrid, pointInPixel)[0]; // x轴值
-            // let yData = _myChart.convertFromPixel(tempGrid, pointInPixel)[1]; // y轴值
             if (_isDrawAllow) { // 添加坐标点
                 op = _myChart.getOption();
                 if (isFirstDraw) {
@@ -502,13 +498,12 @@ let chartT = {
             _attachedNum--;
         else
             return;
-
         let that = chartT;
         let op = _myChart.getOption();
         let tempOp = com.deepClone(op);
         let gridParams = that.getGrid(_attachedNum);
         let tempGrid = [];
-        // if (!barIndex) {
+
         for (let i = 0; i < _attachedNum; i++) {
             tempGrid.push({
                 left: 90,
@@ -518,44 +513,47 @@ let chartT = {
             });
         }
         tempOp.grid = tempGrid;
-        tempOp.xAxis = op.xAxis.filter((item, index) => {
-            return op.xAxis[index].gridIndex != _attachedNum;
-        });
-        tempOp.yAxis = op.yAxis.filter((item, index) => {
-            return op.yAxis[index].gridIndex != _attachedNum;
-        });
-        tempOp.series = op.series.filter((item, index) => {
-            return op.series[index].xAxisIndex != _attachedNum;
-        });
+        if (!barIndex) { // 删除最后一个
+            tempOp.xAxis = op.xAxis.filter((item, index) => {
+                return op.xAxis[index].gridIndex != _attachedNum;
+            });
+            tempOp.yAxis = op.yAxis.filter((item, index) => {
+                return op.yAxis[index].gridIndex != _attachedNum;
+            });
+            tempOp.series = op.series.filter((item, index) => {
+                return op.series[index].xAxisIndex != _attachedNum;
+            });
+        } else { // 删除某一项
+            tempOp.xAxis = op.xAxis.filter((item, index) => {
+                return op.xAxis[index].gridIndex != barIndex;
+            });
+            tempOp.yAxis = op.yAxis.filter((item, index) => {
+                return op.yAxis[index].gridIndex != barIndex;
+            });
+            tempOp.series = op.series.filter((item, index) => {
+                return op.series[index].xAxisIndex != barIndex;
+            });
+            tempOp.xAxis.map((item, index) => {
+                if (tempOp.xAxis[index].gridIndex > barIndex) {
+                    tempOp.xAxis[index].gridIndex--;
+                }
+            });
+            tempOp.yAxis.map((item, index) => {
+                if (tempOp.yAxis[index].gridIndex > barIndex) {
+                    tempOp.yAxis[index].gridIndex--;
+                }
+            });
+            tempOp.series.map((item, index) => {
+                if (tempOp.series[index].xAxisIndex > barIndex) {
+                    tempOp.series[index].xAxisIndex--;
+                    tempOp.series[index].yAxisIndex--;
+                }
+            });
+
+        }
+        console.log(tempOp);
         tempOp.dataZoom[0].xAxisIndex.pop();
         tempOp.dataZoom[1].xAxisIndex.pop();
-        // } else { // 根据barIndex 修改
-        //     for (let i = 0; i < _attachedNum; i++) {
-        //         tempGrid.push({
-        //             left: 90,
-        //             right: 20,
-        //             top: gridParams[i].gridT,
-        //             height: gridParams[i].gridH
-        //         });
-        //         if (tempOp.xAxis[i].gridIndex > barIndex) {
-        //             tempOp.xAxis[i] = tempOp.xAxis[i + 1];
-        //         }
-        //         if (tempOp.yAxis[i].gridIndex > barIndex) {
-        //             tempOp.yAxis[i] = tempOp.yAxis[i + 1];
-        //         }
-        //         if (tempOp.series[i].gridIndex > barIndex) {
-        //             tempOp.series[i] = tempOp.series[i + 1];
-        //         }
-        //     }
-        //     delete(tempOp.xAxis[_attachedNum]);
-        //     delete(tempOp.yAxis[_attachedNum]);
-        //     delete(tempOp.series[_attachedNum]);
-        //     tempOp.grid = tempGrid;
-        //     tempOp.dataZoom[0].xAxisIndex.pop();
-        //     tempOp.dataZoom[1].xAxisIndex.pop();
-        // }
-
-
         _myChart.clear();
         _myChart.dispose();
         _myChart = echarts.init(_domSelector);
@@ -678,7 +676,7 @@ let chartT = {
             that.openBox(param);
             _hasAxisPointer = true;
         } else {
-            op.yAxis.map((ietm, index) => {
+            op.yAxis.map((item, index) => {
                 delete(op.yAxis[index].axisPointer);
             });
             op.xAxis.map((item, index) => {

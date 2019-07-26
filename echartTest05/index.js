@@ -310,25 +310,17 @@ let chartT = {
      * toolbar 事件
      */
     toolbarEvents: () => {
-        let that = this;
-        let domSwitch = document.getElementsByClassName('bar-switch');
-        let domDel = document.getElementsByClassName('bar-graph');
-
-        // domSwitch.map((item, index) => {
-        //     domSwitch[index].addEventListener('click', switchCall);
-        // });
-        // domDel.map((item, index) => {
-        //     domDel[index].addEventListener('click', delCall);
-        // });
+        let that = chartT;
+        let domSwitch = document.getElementsByClassName('graph-switch');
+        let domDel = document.getElementsByClassName('graph-del');
         let switchCall = (e) => { // 回调
-            console.log(e.target.outerHTML);
+            let barIndex = e.target.getAttribute('data-index');
         };
         let delCall = (e) => { // 回调
-            console.log(e);
+            let barIndex = e.target.getAttribute('data-index');
+            that.delGraph(barIndex);
         };
         for (let i = 0; i < domDel.length; i++) {
-            let toolIndex = domSwitch[i].getAttribute('data-index');
-            console.log(domSwitch[i]);
             domSwitch[i].addEventListener('click', switchCall);
             domDel[i].addEventListener('click', delCall);
         }
@@ -340,7 +332,7 @@ let chartT = {
         let domStrLine = document.querySelector('#straightLine'); // 直线
         let domHalLine = document.querySelector('#halfLine'); // 射线
         let domParLine = document.querySelector('#parallelLine'); // 平行线
-        let domClearBtn = document.querySelector('#delLine');
+        let domClearBtn = document.querySelector('#clearnLine');
         let domMouRBox = document.querySelector('.mousedown-right');
         let isFirstDraw = true; // 是否画第一点
         let data = [];
@@ -501,6 +493,77 @@ let chartT = {
             domGrid.style.top = 80 - 10 * num + i * (20 + 10 * num) / (num - 1) + '%';
         }
     },
+    /**
+     * 删除附图
+     * index: 附图索引；不传从最后删除
+     */
+    delGraph: (barIndex) => {
+        if (_attachedNum > 2)
+            _attachedNum--;
+        else
+            return;
+
+        let that = chartT;
+        let op = _myChart.getOption();
+        let tempOp = com.deepClone(op);
+        let gridParams = that.getGrid(_attachedNum);
+        let tempGrid = [];
+        // if (!barIndex) {
+        for (let i = 0; i < _attachedNum; i++) {
+            tempGrid.push({
+                left: 90,
+                right: 20,
+                top: gridParams[i].gridT,
+                height: gridParams[i].gridH
+            });
+        }
+        tempOp.grid = tempGrid;
+        tempOp.xAxis = op.xAxis.filter((item, index) => {
+            return op.xAxis[index].gridIndex != _attachedNum;
+        });
+        tempOp.yAxis = op.yAxis.filter((item, index) => {
+            return op.yAxis[index].gridIndex != _attachedNum;
+        });
+        tempOp.series = op.series.filter((item, index) => {
+            return op.series[index].xAxisIndex != _attachedNum;
+        });
+        tempOp.dataZoom[0].xAxisIndex.pop();
+        tempOp.dataZoom[1].xAxisIndex.pop();
+        // } else { // 根据barIndex 修改
+        //     for (let i = 0; i < _attachedNum; i++) {
+        //         tempGrid.push({
+        //             left: 90,
+        //             right: 20,
+        //             top: gridParams[i].gridT,
+        //             height: gridParams[i].gridH
+        //         });
+        //         if (tempOp.xAxis[i].gridIndex > barIndex) {
+        //             tempOp.xAxis[i] = tempOp.xAxis[i + 1];
+        //         }
+        //         if (tempOp.yAxis[i].gridIndex > barIndex) {
+        //             tempOp.yAxis[i] = tempOp.yAxis[i + 1];
+        //         }
+        //         if (tempOp.series[i].gridIndex > barIndex) {
+        //             tempOp.series[i] = tempOp.series[i + 1];
+        //         }
+        //     }
+        //     delete(tempOp.xAxis[_attachedNum]);
+        //     delete(tempOp.yAxis[_attachedNum]);
+        //     delete(tempOp.series[_attachedNum]);
+        //     tempOp.grid = tempGrid;
+        //     tempOp.dataZoom[0].xAxisIndex.pop();
+        //     tempOp.dataZoom[1].xAxisIndex.pop();
+        // }
+
+
+        _myChart.clear();
+        _myChart.dispose();
+        _myChart = echarts.init(_domSelector);
+        that.toolLineDraw(_attachedNum, true);
+        _myChart.setOption(tempOp, true, true);
+        that.graphicLine(); // graphic组件
+        that.bindEvents(); // 事件绑定
+    },
     graphicEvents: () => {
         let that = chartT;
         let domAdd = document.querySelector('#addGraph');
@@ -553,43 +616,8 @@ let chartT = {
         });
         // 删除附图
         domDel.addEventListener('click', (e) => {
-            if (_attachedNum > 2)
-                _attachedNum--;
-            else
-                return;
-            op = _myChart.getOption();
-            gridParams = that.getGrid(_attachedNum);
-            let tempGrid = [];
-            for (let i = 0; i < _attachedNum; i++) {
-                tempGrid.push({
-                    left: 90,
-                    right: 20,
-                    top: gridParams[i].gridT,
-                    height: gridParams[i].gridH
-                });
-            }
-            op.grid = tempGrid;
-            op.xAxis = op.xAxis.filter((item, index) => {
-                return op.xAxis[index].gridIndex != _attachedNum;
-            });
-            op.yAxis = op.yAxis.filter((item, index) => {
-                return op.yAxis[index].gridIndex != _attachedNum;
-            });
-            op.series = op.series.filter((item, index) => {
-                return op.series[index].xAxisIndex != _attachedNum;
-            });
-            op.dataZoom[0].xAxisIndex.pop();
-            op.dataZoom[1].xAxisIndex.pop();
-            let tempOp = com.deepClone(op);
-            _myChart.clear();
-            _myChart.dispose();
-            _myChart = echarts.init(_domSelector);
-            that.toolLineDraw(_attachedNum, true);
-            _myChart.setOption(tempOp, true, true);
             domMouRBox.style.display = 'none';
-
-            that.graphicLine(); // graphic组件
-            that.bindEvents(); // 事件绑定
+            that.delGraph();
         });
     },
     /**

@@ -2084,6 +2084,9 @@
                                 "1m": "01m",
                                 "line": "line"
                             };
+                            // 190820 对象
+                            this.showTools = true;
+
                             Object.assign(this, option);
 
                             if (!Kline.created) {
@@ -2140,29 +2143,27 @@
                                 });
 
                                 // 设置窗口最大化--190725
-                                Kline.instance.isSized = !Kline.instance.isSized;
-                                if (Kline.instance.isSized) {
-                                    $(Kline.instance.element).css({
-                                        position: 'fixed',
-                                        left: '0',
-                                        right: '0',
-                                        top: '0',
-                                        bottom: '0',
-                                        width: '100%',
-                                        height: '100%',
-                                        zIndex: '10000'
-                                    });
+                                // Kline.instance.isSized = !Kline.instance.isSized;
+                                // if (Kline.instance.isSized) {
+                                //     $(Kline.instance.element).css({
+                                //         position: 'fixed',
+                                //         left: '0',
+                                //         right: '0',
+                                //         top: '0',
+                                //         bottom: '0',
+                                //         width: '100%',
+                                //         height: '100%',
+                                //         zIndex: '10000'
+                                //     });
 
-                                    _control.Control.onSize();
-                                    $('html,body').css({ width: '100%', height: '100%', overflow: 'hidden' });
-                                } else {
-                                    $(Kline.instance.element).attr('style', '');
-
-                                    $('html,body').attr('style', '');
-
-                                    _control.Control.onSize(Kline.instance.width, Kline.instance.height);
-                                    $(Kline.instance.element).css({ visibility: 'visible', height: Kline.instance.height + 'px' });
-                                }
+                                //     _control.Control.onSize();
+                                //     $('html,body').css({ width: '100%', height: '100%', overflow: 'hidden' });
+                                // } else {
+                                //     $(Kline.instance.element).attr('style', '');
+                                //     $('html,body').attr('style', '');
+                                //     _control.Control.onSize(Kline.instance.width, Kline.instance.height);
+                                //     $(Kline.instance.element).css({ visibility: 'visible', height: Kline.instance.height + 'px' });
+                                // }
 
 
                             }
@@ -2250,7 +2251,6 @@
                                 }
 
                                 this.paused = false;
-
                                 _control.Control.requestData(true);
                             }
                         }, {
@@ -4006,7 +4006,8 @@
                                     (0, _jquery.default)("#chart_updated_time_text").html(Control.refreshCounter + "秒");
                                 }
 
-                                Control.refreshHandler = setInterval(Control.refreshFunction, _kline.default.instance.intervalTime);
+                                // 190820 去掉 setInterval
+                                // Control.refreshHandler = setInterval(Control.refreshFunction, _kline.default.instance.intervalTime);
                             }
                         }, {
                             key: "requestData",
@@ -4025,7 +4026,10 @@
                                 if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient) {
                                     Control.requestOverStomp();
                                 } else {
-                                    Control.requestOverHttp();
+                                    // Control.requestOverHttp();
+                                    // 190820 加载数据
+                                    Control.requestSuccessHandler(_kline.default.instance.data);
+
                                 }
                             }
                         }, {
@@ -4043,8 +4047,8 @@
 
                                     return;
                                 }
-                                // 修改readyState--190725
-                                if (_kline.default.instance.stompClient && _kline.default.instance.stompClient.readyState === 1) {
+
+                                if (_kline.default.instance.stompClient && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.stompClient.send(_kline.default.instance.sendPath, {}, JSON.stringify(Control.parseRequestParam(_kline.default.instance.requestParam)));
 
                                     return;
@@ -4100,30 +4104,34 @@
                                 }));
                             }
                         }, {
+                            // 190820 处理requirejs返回的数据
                             key: "requestSuccessHandler",
                             value: function requestSuccessHandler(res) {
                                 if (_kline.default.instance.debug) {
                                     console.log(res);
                                 }
 
-                                if (!res || !res.success) {
-                                    if (_kline.default.instance.type === 'poll') {
-                                        _kline.default.instance.timer = setTimeout(function() {
-                                            Control.requestData(true);
-                                        }, _kline.default.instance.intervalTime);
-                                    }
-
-                                    return;
-                                }
+                                // 190820 数据结构改变，没有success属性
+                                // if (!res || !res.success) {
+                                //     if (_kline.default.instance.type === 'poll') {
+                                //         _kline.default.instance.timer = setTimeout(function() {
+                                //             Control.requestData(true);
+                                //         }, _kline.default.instance.intervalTime);
+                                //     }
+                                //     return;
+                                // }
 
                                 (0, _jquery.default)("#chart_loading").removeClass("activated");
 
                                 var chart = _chart_manager.ChartManager.instance.getChart();
 
                                 chart.setTitle();
-                                _kline.default.instance.data = eval(res.data);
+                                // 190820
+                                // _kline.default.instance.data = eval(res.data);
+                                var chartData = eval(res.data);
 
-                                var updateDataRes = _kline.default.instance.chartMgr.updateData("frame0.k0", _kline.default.instance.data.lines);
+
+                                var updateDataRes = _kline.default.instance.chartMgr.updateData("frame0.k0", chartData.lines);
 
                                 _kline.default.instance.requestParam = Control.setHttpRequestParam(_kline.default.instance.symbol, _kline.default.instance.range, null, _kline.default.instance.chartMgr.getDataSource("frame0.k0").getLastDate());
                                 var intervalTime = _kline.default.instance.intervalTime < _kline.default.instance.range ? _kline.default.instance.intervalTime : _kline.default.instance.range;
@@ -4136,18 +4144,19 @@
                                     return;
                                 }
 
-                                if (_kline.default.instance.data.trades && _kline.default.instance.data.trades.length > 0) {
-                                    _kline_trade.KlineTrade.instance.pushTrades(_kline.default.instance.data.trades);
+                                if (chartData.trades && chartData.trades.length > 0) {
+                                    _kline_trade.KlineTrade.instance.pushTrades(chartData.trades);
 
                                     _kline_trade.KlineTrade.instance.klineTradeInit = true;
                                 }
 
-                                if (_kline.default.instance.data.depths) {
-                                    _kline_trade.KlineTrade.instance.updateDepth(_kline.default.instance.data.depths);
+                                if (chartData.depths) {
+                                    _kline_trade.KlineTrade.instance.updateDepth(chartData.depths);
                                 }
 
                                 Control.clearRefreshCounter();
 
+                                // 190820 第二次加载
                                 if (_kline.default.instance.type === 'poll') {
                                     _kline.default.instance.timer = setTimeout(Control.TwoSecondThread, intervalTime);
                                 }
@@ -4173,7 +4182,6 @@
                                 } else {
                                     _kline.default.instance.requestParam = Control.setHttpRequestParam(_kline.default.instance.symbol, _kline.default.instance.range, null, f.toString());
                                 }
-
                                 Control.requestData();
                             }
                         }, {
@@ -4303,8 +4311,9 @@
                                 toolBarRect.x = 0;
                                 toolBarRect.y = 0;
                                 toolBarRect.w = chartWidth;
-                                //toolBarRect.h = 29;
-                                toolBarRect.h = 0; // toolbar高度设0 进行隐藏 --190725
+                                // toolBarRect.h = 29;
+                                // 190820 上边距
+                                toolBarRect.h = Kline.instance.showTools ? 29 : 0;
                                 var toolPanelRect = {};
                                 toolPanelRect.x = 0;
                                 toolPanelRect.y = toolBarRect.h + 1;
@@ -4325,8 +4334,8 @@
                                     top: toolBarRect.y + 'px',
                                     width: toolBarRect.w + 'px',
                                     height: toolBarRect.h + 'px',
-                                    // 新增-190725
-                                    display: 'none'
+                                    // 190725
+                                    display: Kline.instance.showTools ? 'block' : 'none'
                                 });
 
                                 if (toolPanelShown) {
@@ -4337,13 +4346,13 @@
                                         height: toolPanelRect.h + 'px'
                                     });
                                 }
-
+                                // 主图
                                 canvasGroup.css({
                                     left: canvasGroupRect.x + 'px',
+                                    // 190820
                                     top: canvasGroupRect.y + 'px',
-                                    // width: canvasGroupRect.w + 'px',
+                                    width: canvasGroupRect.w + 'px',
                                     height: canvasGroupRect.h + 'px',
-
                                 });
                                 var mainCanvas = (0, _jquery.default)('#chart_mainCanvas')[0];
                                 var overlayCanvas = (0, _jquery.default)('#chart_overlayCanvas')[0];
@@ -4355,6 +4364,7 @@
                                 if (tabBarShown) {
                                     tabBar.css({
                                         left: tabBarRect.x + 'px',
+                                        // 190820
                                         top: tabBarRect.y + 'px',
                                         width: tabBarRect.w + 'px',
                                         height: tabBarRect.h + 'px'
@@ -4366,6 +4376,7 @@
                                     left: chartWidth - dlgSettings.width() >> 1,
                                     top: height - dlgSettings.height() >> 1
                                 });
+
                                 var dlgLoading = (0, _jquery.default)("#chart_loading");
                                 dlgLoading.css({
                                     left: chartWidth - dlgLoading.width() >> 1,
@@ -4437,6 +4448,10 @@
                                 return false;
                             }
                         }, {
+                            /**
+                             * 190821 切换主题
+                             * light dark 为css中的样式
+                             */
                             key: "switchTheme",
                             value: function switchTheme(name) {
                                 (0, _jquery.default)('#chart_toolbar_theme a').removeClass('selected');
@@ -4646,10 +4661,8 @@
                         }, {
                             key: "switchSymbol",
                             value: function switchSymbol(symbol) {
-                                // 修改readyState--190725
-                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.readyState === 1) {
+                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.subscribed.unsubscribe();
-
                                     _kline.default.instance.subscribed = _kline.default.instance.stompClient.subscribe(_kline.default.instance.subscribePath + '/' + symbol + '/' + _kline.default.instance.range, Control.subscribeCallback);
                                 }
 
@@ -4690,13 +4703,11 @@
                         }, {
                             key: "subscribeCallback",
                             value: function subscribeCallback(res) {
-                                //Control.requestSuccessHandler(JSON.parse(res.body));
-                                Control.requestSuccessHandler(JSON.parse(res.data));
+                                Control.requestSuccessHandler(JSON.parse(res.body));
                             }
                         }, {
                             key: "socketConnect",
                             value: function socketConnect() {
-                                /*
                                 if (!_kline.default.instance.stompClient || !_kline.default.instance.socketConnected) {
                                     if (_kline.default.instance.enableSockjs) {
                                         var socket = new SockJS(_kline.default.instance.url);
@@ -4708,7 +4719,7 @@
                                     _kline.default.instance.socketConnected = true;
                                 }
 
-                                if (_kline.default.instance.stompClient.readyState === 1) {
+                                if (_kline.default.instance.stompClient.ws.readyState === 1) {
                                     console.log('DEBUG: already connected');
                                     return;
                                 }
@@ -4718,8 +4729,8 @@
                                 }
 
                                 _kline.default.instance.stompClient.connect({}, function() {
-                                    _kline.default.instance.stompClient.subscribe('/user' + _kline.default.instance.subscribePath, Control.subscribeCallback);
 
+                                    _kline.default.instance.stompClient.subscribe('/user' + _kline.default.instance.subscribePath, Control.subscribeCallback);
                                     _kline.default.instance.subscribed = _kline.default.instance.stompClient.subscribe(_kline.default.instance.subscribePath + '/' + _kline.default.instance.symbol + '/' + _kline.default.instance.range, Control.subscribeCallback);
                                     Control.requestData(true);
                                 }, function() {
@@ -4729,30 +4740,7 @@
                                     setTimeout(function() {
                                         Control.socketConnect();
                                     }, 5000);
-                                });*/
-                                // 修改--190725
-                                if (!_kline.default.instance.stompClient || !_kline.default.instance.socketConnected) {
-                                    _kline.default.instance.stompClient = new WebSocket(_kline.default.instance.url);
-                                    _kline.default.instance.socketConnected = true;
-                                }
-                                // 修改readyState --190725     
-                                if (_kline.default.instance.stompClient.readyState === 1) {
-                                    console.log('DEBUG: already connected');
-                                    return;
-                                }
-
-                                if (!_kline.default.instance.debug) { //Kline.instance.stompClient.debug = null;
-                                }
-
-                                _kline.default.instance.stompClient.onopen = function() {
-                                    console.log("DEBUG: stompClient onopen");
-                                    Control.requestData(true);
-                                };
-
-                                _kline.default.instance.stompClient.onclose = function() {
-                                    console.log("DEBUG: stompClient onclose");
-                                };
-                                _kline.default.instance.stompClient.onmessage = Control.subscribeCallback;
+                                });
                             }
                         }]);
 
@@ -10726,6 +10714,7 @@
                             key: "getHighlightedArea",
                             value: function getHighlightedArea() {
                                 if (this._highlightedArea !== null) {
+
                                     return this._highlightedArea.getHighlightedArea();
                                 }
 
@@ -12962,32 +12951,58 @@
                                 var that = this;
 
                                 if (this.klineTradeInit) {
-                                    clearInterval(myTime);
-                                    var myTime = setInterval(function() {
-                                        var item = array[j]; //that.curPrice = item.price
+                                    // clearInterval(myTime);
+                                    // var myTime = setInterval(function() {
+                                    //     var item = array[j]; //that.curPrice = item.price
 
-                                        var price = Number(item.price);
+                                    //     var price = Number(item.price);
 
-                                        if (price > 1) {
-                                            price = price.toFixed(2);
-                                        }
+                                    //     if (price > 1) {
+                                    //         price = price.toFixed(2);
+                                    //     }
 
-                                        if (price < 1 && price > 0.0001) {
-                                            price = price.toFixed(4);
-                                        }
+                                    //     if (price < 1 && price > 0.0001) {
+                                    //         price = price.toFixed(4);
+                                    //     }
 
-                                        if (price < 0.0001) {
-                                            price = price.toFixed(6);
-                                        }
+                                    //     if (price < 0.0001) {
+                                    //         price = price.toFixed(6);
+                                    //     }
 
-                                        that.curPrice = price;
-                                        $("div#price").attr("class", item.type === 'buy' ? 'green' : 'red').text(price);
-                                        j++;
+                                    //     that.curPrice = price;
+                                    //     $("div#price").attr("class", item.type === 'buy' ? 'green' : 'red').text(price);
+                                    //     j++;
 
-                                        if (j >= array.length) {
-                                            clearInterval(myTime);
-                                        }
-                                    }, 100);
+                                    //     if (j >= array.length) {
+                                    //         clearInterval(myTime);
+                                    //     }
+                                    // }, 100);
+                                    // 190820 取消setInterval()
+                                    var item = array[j]; //that.curPrice = item.price
+
+                                    var price = Number(item.price);
+
+                                    if (price > 1) {
+                                        price = price.toFixed(2);
+                                    }
+
+                                    if (price < 1 && price > 0.0001) {
+                                        price = price.toFixed(4);
+                                    }
+
+                                    if (price < 0.0001) {
+                                        price = price.toFixed(6);
+                                    }
+
+                                    that.curPrice = price;
+                                    $("div#price").attr("class", item.type === 'buy' ? 'green' : 'red').text(price);
+                                    j++;
+
+                                    if (j >= array.length) {
+                                        clearInterval(myTime);
+                                    }
+
+
                                 } else {
                                     if (array.length > 0) {
                                         //this.curPrice=array[array.length-1].price.toFixed(6);
@@ -16048,11 +16063,9 @@
 
                                 if (f === -1) {
                                     _kline.default.instance.requestParam = _control.Control.setHttpRequestParam(_kline.default.instance.symbol, _kline.default.instance.range, _kline.default.instance.limit, null);
-
                                     _control.Control.requestData(true);
                                 } else {
                                     _kline.default.instance.requestParam = _control.Control.setHttpRequestParam(_kline.default.instance.symbol, _kline.default.instance.range, null, f.toString());
-
                                     _control.Control.requestData();
                                 }
 
@@ -16075,8 +16088,9 @@
                             value: function setCurrentPeriod(period) {
                                 this._range = _kline.default.instance.periodMap[period];
 
-                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.readyState === 1) {
+                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.subscribed.unsubscribe();
+
                                     _kline.default.instance.subscribed = _kline.default.instance.stompClient.subscribe(_kline.default.instance.subscribePath + '/' + _kline.default.instance.symbol + '/' + this._range, _control.Control.subscribeCallback);
                                 }
 

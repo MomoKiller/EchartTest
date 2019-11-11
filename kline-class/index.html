@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>K线图</title>
+    <script src="/kline_class.js"></script>
+</head>
+
+<body>
+    <div id="kline_container"></div>
+    <script>
+        let kline = new Kline();
+        let klineObj = {
+            element: "#kline_container",
+            width: 1200,
+            height: 650,
+            theme: 'dark',
+            language: 'zh-cn',
+            ranges: ["1w", "1d", "1h", "30m", "15m", "5m", "1m", "line"],
+            symbol: "BTC",
+            symbolName: "BTC/USD",
+            type: "poll",
+            url: "/mock.json",
+            limit: 1000,
+            intervalTime: 5000,
+            debug: true,
+            showTrade: false
+        };
+        // 初始化Kline
+        kline.init(klineObj);
+    </script>
+</body>
+
+</html>

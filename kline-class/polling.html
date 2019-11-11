@@ -1,0 +1,65 @@
+﻿<html>
+
+<head>
+    <title>K线图</title>
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="/lib/jquery.js"></script>
+    <script src="/lib/jquery.mousewheel.js"></script>
+</head>
+
+<body>
+
+    <div class="kline">
+        <!-- <h1>K线图</h1> -->
+        <div id="kline_container"></div>
+    </div>
+
+    <script src="/lib/kline.js"></script>
+
+    <script type="text/javascript">
+        var clientH = window.screen.height || document.body.scrollHeight;
+        var clientW = window.screen.width || document.body.scrollWidth;
+
+        let resData = {};
+
+        $.get('/mock.json', (res) => {
+            resData = res;
+            let kline = new Kline({
+                element: "#kline_container",
+                width: document.getElementById('kline_container').width,
+                height: document.getElementById('kline_container').height,
+                theme: 'dark', // light/dark
+                language: 'zh-cn', // zh-cn/en-us/zh-tw
+                ranges: ["1w", "1d", "1h", "30m", "15m", "5m", "1m", "line"],
+                symbol: "BTC",
+                symbolName: "BTC/USD",
+                type: "poll", // poll/socket
+                limit: 1000,
+                intervalTime: 3000,
+                debug: true,
+                showTrade: false, // 显示右侧图表
+                onRangeChange: (e) => { // 事件赛选值变更
+                    console.log(e);
+                }
+            });
+            console.log(kline);
+            kline.draw();
+        });
+
+        setTimeout(function(){
+            $.get('/mock.json', (res) => {
+                resData.data.depths.asks.concat(res.data.depths.asks);
+                resData.data.depths.bids.concat(res.data.depths.bids);
+                resData.data.lines.concat(res.data.lines);
+                resData.data.trades.concat(res.data.trades);
+            });
+
+        }, 2000);
+        
+    </script>
+
+</body>
+
+</html>

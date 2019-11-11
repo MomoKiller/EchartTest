@@ -1,3 +1,5 @@
+// 190823 坐标轴x,y
+var _curX, _curY;
 (function webpackUniversalModuleDefinition(root, factory) {
     if (typeof exports === 'object' && typeof module === 'object')
         module.exports = factory(require("jquery"));
@@ -225,7 +227,6 @@
                                     }
 
                                     this.layout(this._mainContext, "frame0", 0, 0, this._mainCanvas.width, this._mainCanvas.height);
-                                    console.log('_mainContext-------------', this._mainContext);
                                     this.drawMain("frame0", this._mainContext);
                                 }
 
@@ -1043,6 +1044,12 @@
                         }, {
                             key: "onMouseMove",
                             value: function onMouseMove(frameName, x, y, drag) {
+
+                                // 190822 鼠标移动
+                                // console.log(frameName, x, y, drag);
+                                _curX = x;
+                                _curY = y;
+
                                 var frame = this.getFrame(frameName);
                                 if (frame === undefined) return;
                                 this.setFrameMousePos(frameName, x, y);
@@ -1056,7 +1063,7 @@
                                 }
 
                                 var _areas = frame.contains(x, y);
-
+                                // console.log('_areas', _areas);
                                 if (_areas === null) return;
                                 var a,
                                     i,
@@ -2038,7 +2045,8 @@
                             this.subscribePath = "";
                             this.sendPath = "";
                             this.stompClient = null;
-                            this.intervalTime = 5000;
+                            // this.intervalTime = 5000;
+                            this.intervalTime = 300;
                             this.debug = true;
                             this.language = "zh-cn";
                             this.theme = "dark";
@@ -2084,6 +2092,9 @@
                                 "1m": "01m",
                                 "line": "line"
                             };
+                            // 190820 对象
+                            this.datasource = {};
+
                             Object.assign(this, option);
 
                             if (!Kline.created) {
@@ -2125,11 +2136,17 @@
                                 }
 
                                 this.registerMouseEvent();
+
+                                // 190822 注册键盘事件
+                                this.resgiterKeyEvent();
+
                                 _chart_manager.ChartManager.instance.bindCanvas("main", document.getElementById("chart_mainCanvas"));
 
                                 _chart_manager.ChartManager.instance.bindCanvas("overlay", document.getElementById("chart_overlayCanvas"));
 
                                 _control.Control.refreshTemplate();
+
+                                _control.Control.onSize(this.width, this.height);
 
                                 _control.Control.readCookie();
 
@@ -2138,33 +2155,6 @@
                                 (0, _jquery.default)(this.element).css({
                                     visibility: "visible"
                                 });
-
-                                // 设置窗口最大化--190725
-                                Kline.instance.isSized = !Kline.instance.isSized;
-                                if (Kline.instance.isSized) {
-                                    $(Kline.instance.element).css({
-                                        position: 'fixed',
-                                        left: '0',
-                                        right: '0',
-                                        top: '0',
-                                        bottom: '0',
-                                        width: '100%',
-                                        height: '100%',
-                                        zIndex: '10000'
-                                    });
-
-                                    _control.Control.onSize();
-                                    $('html,body').css({ width: '100%', height: '100%', overflow: 'hidden' });
-                                } else {
-                                    $(Kline.instance.element).attr('style', '');
-
-                                    $('html,body').attr('style', '');
-
-                                    _control.Control.onSize(Kline.instance.width, Kline.instance.height);
-                                    $(Kline.instance.element).css({ visibility: 'visible', height: Kline.instance.height + 'px' });
-                                }
-
-
                             }
                         }, {
                             key: "resize",
@@ -2228,39 +2218,22 @@
                             key: "setIntervalTime",
                             value: function setIntervalTime(intervalTime) {
                                 this.intervalTime = intervalTime;
-
-                                if (this.debug) {
-                                    console.log('DEBUG: interval time changed to ' + intervalTime);
-                                }
                             }
                         }, {
                             key: "pause",
                             value: function pause() {
-                                if (this.debug) {
-                                    console.log('DEBUG: kline paused');
-                                }
-
                                 this.paused = true;
                             }
                         }, {
                             key: "resend",
                             value: function resend() {
-                                if (this.debug) {
-                                    console.log('DEBUG: kline continue');
-                                }
-
                                 this.paused = false;
-
                                 _control.Control.requestData(true);
                             }
                         }, {
                             key: "connect",
                             value: function connect() {
                                 if (this.type !== 'stomp') {
-                                    if (this.debug) {
-                                        console.log('DEBUG: this is for stomp type');
-                                    }
-
                                     return;
                                 }
 
@@ -2270,20 +2243,12 @@
                             key: "disconnect",
                             value: function disconnect() {
                                     if (this.type !== 'stomp') {
-                                        if (this.debug) {
-                                            console.log('DEBUG: this is for stomp type');
-                                        }
-
                                         return;
                                     }
 
                                     if (this.stompClient) {
                                         this.stompClient.disconnect();
                                         this.socketConnected = false;
-                                    }
-
-                                    if (this.debug) {
-                                        console.log('DEBUG: socket disconnected');
                                     }
                                 }
                                 /*********************************************
@@ -2292,39 +2257,19 @@
 
                         }, {
                             key: "onResize",
-                            value: function onResize(width, height) {
-                                if (this.debug) {
-                                    console.log("DEBUG: chart resized to width: " + width + " height: " + height);
-                                }
-                            }
+                            value: function onResize(width, height) {}
                         }, {
                             key: "onLangChange",
-                            value: function onLangChange(lang) {
-                                if (this.debug) {
-                                    console.log("DEBUG: language changed to " + lang);
-                                }
-                            }
+                            value: function onLangChange(lang) {}
                         }, {
                             key: "onSymbolChange",
-                            value: function onSymbolChange(symbol, symbolName) {
-                                if (this.debug) {
-                                    console.log("DEBUG: symbol changed to " + symbol + " " + symbolName);
-                                }
-                            }
+                            value: function onSymbolChange(symbol, symbolName) {}
                         }, {
                             key: "onThemeChange",
-                            value: function onThemeChange(theme) {
-                                if (this.debug) {
-                                    console.log("DEBUG: themes changed to : " + theme);
-                                }
-                            }
+                            value: function onThemeChange(theme) {}
                         }, {
                             key: "onRangeChange",
-                            value: function onRangeChange(range) {
-                                if (this.debug) {
-                                    console.log("DEBUG: range changed to " + range);
-                                }
-                            }
+                            value: function onRangeChange(range) {}
                         }, {
                             key: "registerMouseEvent",
                             value: function registerMouseEvent() {
@@ -2702,6 +2647,73 @@
                                     });
                                 });
                             }
+                        }, {
+                            /**
+                             * 190822 键盘事件
+                             */
+                            key: "resgiterKeyEvent",
+                            value: function resgiterKeyEvent() {
+                                document.onkeydown = function(e) {
+
+                                    // console.log("键盘事件--", e);
+                                    _curX = _curX - 10;
+
+                                    var mgr = _chart_manager.ChartManager.instance;
+                                    mgr.hideCursor(); // 隐藏指针
+                                    // mgr.hideCrossCursor();  // 隐藏鼠标十字线
+                                    // console.log(NamedObject.getFrameName());
+
+
+                                    // var frame = this.getFrame("frame0");
+                                    // if (frame === undefined) return;
+                                    // var mgr = _chart_manager.ChartManager.instance;
+
+                                    // var mainArea = MainArea.mainArea.instance;
+                                    // // if (mgr._capturingMouseArea === this)
+                                    // //     if (this._dragStarted === false)
+                                    // //         if (Math.abs(this._oldX - x) > 1 || Math.abs(this._oldY - y) > 1) this._dragStarted = true;
+
+                                    // if (mainArea._dragStarted) {
+                                    //     mgr.hideCursor();
+                                    //     if (mgr.onToolMouseDrag(mainArea.getFrameName(), _curX, _curY)) return mainArea;
+                                    //     mgr.getTimeline(mainArea.getDataSourceName()).move(_curX - mainArea._oldX);
+                                    //     return this;
+                                    // }
+
+                                    // if (mainArea._passMoveEventToToolManager && mgr.onToolMouseMove(mainArea.getFrameName(), _curX, _curY)) {
+                                    //     mgr.hideCursor();
+                                    //     return mainArea;
+                                    // }
+
+                                    // switch (mgr._drawingTool) {
+                                    //     case _chart_manager.ChartManager.DrawingTool.Cursor:
+                                    //         mgr.showCursor();
+                                    //         break;
+
+                                    //     case _chart_manager.ChartManager.DrawingTool.CrossCursor:
+                                    //         if (mgr.showCrossCursor(mainArea, _curX, _curY)) mgr.hideCursor();
+                                    //         else mgr.showCursor();
+                                    //         break;
+
+                                    //     default:
+                                    //         mgr.hideCursor();
+                                    //         break;
+                                    // }
+
+
+
+
+                                    // return this;
+
+                                    // if (e.keyCode == 37) { // 左
+
+                                    // }
+                                    // if (e.keyCode == 38) { // 右
+
+                                    // }
+
+                                }
+                            }
                         }]);
 
                         return Kline;
@@ -3036,20 +3048,20 @@
                             _this = _possibleConstructorReturn(this, _getPrototypeOf(DarkTheme).call(this));
                             _this._colors = [];
 
-                            if (_kline.default.instance.reverseColor) {
-                                _this._colors[Theme.Color.Positive] = "#990e0e";
-                                _this._colors[Theme.Color.Negative] = "#19b34c";
-                                _this._colors[Theme.Color.PositiveDark] = "#3b0e08";
-                                _this._colors[Theme.Color.NegativeDark] = "#004718";
+                            if (_kline.default.instance.reverseColor) { // 是否反色
+                                _this._colors[Theme.Color.Positive] = "#ff0000";
+                                _this._colors[Theme.Color.Negative] = "#99ffff";
+                                _this._colors[Theme.Color.PositiveDark] = "#777";
+                                _this._colors[Theme.Color.NegativeDark] = "#373e47";
                             } else {
-                                _this._colors[Theme.Color.Positive] = "#19b34c";
-                                _this._colors[Theme.Color.Negative] = "#990e0e";
-                                _this._colors[Theme.Color.PositiveDark] = "#004718";
-                                _this._colors[Theme.Color.NegativeDark] = "#3b0e08";
+                                _this._colors[Theme.Color.Positive] = "#99ffff"; // 绿色柱色值
+                                _this._colors[Theme.Color.Negative] = "#ff0000"; // 阴极
+                                _this._colors[Theme.Color.PositiveDark] = "#373e47";
+                                _this._colors[Theme.Color.NegativeDark] = "#777";
                             }
 
                             _this._colors[Theme.Color.Unchanged] = "#fff";
-                            _this._colors[Theme.Color.Background] = "#0a0a0a";
+                            _this._colors[Theme.Color.Background] = "#1d1f23"; // 背景色
                             _this._colors[Theme.Color.Cursor] = "#aaa";
                             _this._colors[Theme.Color.RangeMark] = "#f9ee30";
                             _this._colors[Theme.Color.Indicator0] = "#ddd";
@@ -3058,7 +3070,7 @@
                             _this._colors[Theme.Color.Indicator3] = "#6bf";
                             _this._colors[Theme.Color.Indicator4] = "#a5cf81";
                             _this._colors[Theme.Color.Indicator5] = "#e18b89";
-                            _this._colors[Theme.Color.Grid0] = "#333";
+                            _this._colors[Theme.Color.Grid0] = "#777";
                             _this._colors[Theme.Color.Grid1] = "#444";
                             _this._colors[Theme.Color.Grid2] = "#666";
                             _this._colors[Theme.Color.Grid3] = "#888";
@@ -3110,7 +3122,7 @@
                             }
 
                             _this2._colors[Theme.Color.Unchanged] = "#fff";
-                            _this2._colors[Theme.Color.Background] = "#fff";
+                            _this2._colors[Theme.Color.Background] = "#fff"; // 背景色
                             _this2._colors[Theme.Color.Cursor] = "#aaa";
                             _this2._colors[Theme.Color.RangeMark] = "#f27935";
                             _this2._colors[Theme.Color.Indicator0] = "#2fd2b2";
@@ -4006,6 +4018,7 @@
                                     (0, _jquery.default)("#chart_updated_time_text").html(Control.refreshCounter + "秒");
                                 }
 
+                                // 190820 setInterval
                                 Control.refreshHandler = setInterval(Control.refreshFunction, _kline.default.instance.intervalTime);
                             }
                         }, {
@@ -4025,7 +4038,11 @@
                                 if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient) {
                                     Control.requestOverStomp();
                                 } else {
-                                    Control.requestOverHttp();
+                                    // Control.requestOverHttp();
+                                    // 190820 加载数据
+                                    // Control.requestSuccessHandler(_kline.default.instance.datasource);
+                                    // console.log('获取数据1', _kline.default.instance.datasource);
+                                    Control.requestSuccessHandler(resData);
                                 }
                             }
                         }, {
@@ -4037,21 +4054,13 @@
                             key: "requestOverStomp",
                             value: function requestOverStomp() {
                                 if (!_kline.default.instance.socketConnected) {
-                                    if (_kline.default.instance.debug) {
-                                        console.log("DEBUG: socket is not coonnected");
-                                    }
-
                                     return;
                                 }
-                                // 修改readyState--190725
-                                if (_kline.default.instance.stompClient && _kline.default.instance.stompClient.readyState === 1) {
+
+                                if (_kline.default.instance.stompClient && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.stompClient.send(_kline.default.instance.sendPath, {}, JSON.stringify(Control.parseRequestParam(_kline.default.instance.requestParam)));
 
                                     return;
-                                }
-
-                                if (_kline.default.instance.debug) {
-                                    console.log("DEBUG: stomp client is not ready yet ...");
                                 }
 
                                 _kline.default.instance.timer = setTimeout(function() {
@@ -4061,9 +4070,6 @@
                         }, {
                             key: "requestOverHttp",
                             value: function requestOverHttp() {
-                                if (_kline.default.instance.debug) {
-                                    console.log("DEBUG: " + _kline.default.instance.requestParam);
-                                }
 
                                 (0, _jquery.default)(document).ready(_kline.default.instance.G_HTTP_REQUEST = _jquery.default.ajax({
                                     type: "GET",
@@ -4082,10 +4088,6 @@
                                         }
                                     },
                                     error: function error(xhr, textStatus, errorThrown) {
-                                        if (_kline.default.instance.debug) {
-                                            console.log(xhr);
-                                        }
-
                                         if (xhr.status === 200 && xhr.readyState === 4) {
                                             return;
                                         }
@@ -4100,27 +4102,26 @@
                                 }));
                             }
                         }, {
+                            // 190820 返回的数据
                             key: "requestSuccessHandler",
                             value: function requestSuccessHandler(res) {
-                                if (_kline.default.instance.debug) {
-                                    console.log(res);
-                                }
 
-                                if (!res || !res.success) {
-                                    if (_kline.default.instance.type === 'poll') {
-                                        _kline.default.instance.timer = setTimeout(function() {
-                                            Control.requestData(true);
-                                        }, _kline.default.instance.intervalTime);
-                                    }
-
-                                    return;
-                                }
+                                // 190820 数据结构改变，没有success属性
+                                // if (!res || !res.success) {
+                                //     if (_kline.default.instance.type === 'poll') {
+                                //         _kline.default.instance.timer = setTimeout(function() {
+                                //             Control.requestData(true);
+                                //         }, _kline.default.instance.intervalTime);
+                                //     }
+                                //     return;
+                                // }
 
                                 (0, _jquery.default)("#chart_loading").removeClass("activated");
 
                                 var chart = _chart_manager.ChartManager.instance.getChart();
 
                                 chart.setTitle();
+
                                 _kline.default.instance.data = eval(res.data);
 
                                 var updateDataRes = _kline.default.instance.chartMgr.updateData("frame0.k0", _kline.default.instance.data.lines);
@@ -4132,13 +4133,11 @@
                                     if (_kline.default.instance.type === 'poll') {
                                         _kline.default.instance.timer = setTimeout(Control.requestData, intervalTime);
                                     }
-
                                     return;
                                 }
 
                                 if (_kline.default.instance.data.trades && _kline.default.instance.data.trades.length > 0) {
                                     _kline_trade.KlineTrade.instance.pushTrades(_kline.default.instance.data.trades);
-
                                     _kline_trade.KlineTrade.instance.klineTradeInit = true;
                                 }
 
@@ -4148,6 +4147,7 @@
 
                                 Control.clearRefreshCounter();
 
+                                // 190820 实时刷新
                                 if (_kline.default.instance.type === 'poll') {
                                     _kline.default.instance.timer = setTimeout(Control.TwoSecondThread, intervalTime);
                                 }
@@ -4303,8 +4303,7 @@
                                 toolBarRect.x = 0;
                                 toolBarRect.y = 0;
                                 toolBarRect.w = chartWidth;
-                                //toolBarRect.h = 29;
-                                toolBarRect.h = 0; // toolbar高度设0 进行隐藏 --190725
+                                toolBarRect.h = 29;
                                 var toolPanelRect = {};
                                 toolPanelRect.x = 0;
                                 toolPanelRect.y = toolBarRect.h + 1;
@@ -4325,8 +4324,6 @@
                                     top: toolBarRect.y + 'px',
                                     width: toolBarRect.w + 'px',
                                     height: toolBarRect.h + 'px',
-                                    // 新增-190725
-                                    display: 'none'
                                 });
 
                                 if (toolPanelShown) {
@@ -4337,13 +4334,13 @@
                                         height: toolPanelRect.h + 'px'
                                     });
                                 }
-
+                                // 主图
                                 canvasGroup.css({
                                     left: canvasGroupRect.x + 'px',
+                                    // 190820
                                     top: canvasGroupRect.y + 'px',
-                                    // width: canvasGroupRect.w + 'px',
+                                    width: canvasGroupRect.w + 'px',
                                     height: canvasGroupRect.h + 'px',
-
                                 });
                                 var mainCanvas = (0, _jquery.default)('#chart_mainCanvas')[0];
                                 var overlayCanvas = (0, _jquery.default)('#chart_overlayCanvas')[0];
@@ -4428,6 +4425,9 @@
                                 _kline.default.instance.onResize(width, height);
                             }
                         }, {
+                            /**
+                             * 鼠标滚轮事件
+                             */
                             key: "mouseWheel",
                             value: function mouseWheel(e, delta) {
                                 _chart_manager.ChartManager.instance.scale(delta > 0 ? 1 : -1);
@@ -4437,6 +4437,10 @@
                                 return false;
                             }
                         }, {
+                            /**
+                             * 190821 切换主题
+                             * light dark 为css中的样式
+                             */
                             key: "switchTheme",
                             value: function switchTheme(name) {
                                 (0, _jquery.default)('#chart_toolbar_theme a').removeClass('selected');
@@ -4646,8 +4650,7 @@
                         }, {
                             key: "switchSymbol",
                             value: function switchSymbol(symbol) {
-                                // 修改readyState--190725
-                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.readyState === 1) {
+                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.subscribed.unsubscribe();
 
                                     _kline.default.instance.subscribed = _kline.default.instance.stompClient.subscribe(_kline.default.instance.subscribePath + '/' + symbol + '/' + _kline.default.instance.range, Control.subscribeCallback);
@@ -4690,13 +4693,11 @@
                         }, {
                             key: "subscribeCallback",
                             value: function subscribeCallback(res) {
-                                //Control.requestSuccessHandler(JSON.parse(res.body));
-                                Control.requestSuccessHandler(JSON.parse(res.data));
+                                Control.requestSuccessHandler(JSON.parse(res.body));
                             }
                         }, {
                             key: "socketConnect",
                             value: function socketConnect() {
-                                /*
                                 if (!_kline.default.instance.stompClient || !_kline.default.instance.socketConnected) {
                                     if (_kline.default.instance.enableSockjs) {
                                         var socket = new SockJS(_kline.default.instance.url);
@@ -4708,8 +4709,7 @@
                                     _kline.default.instance.socketConnected = true;
                                 }
 
-                                if (_kline.default.instance.stompClient.readyState === 1) {
-                                    console.log('DEBUG: already connected');
+                                if (_kline.default.instance.stompClient.ws.readyState === 1) {
                                     return;
                                 }
 
@@ -4724,35 +4724,10 @@
                                     Control.requestData(true);
                                 }, function() {
                                     _kline.default.instance.stompClient.disconnect();
-
-                                    console.log("DEBUG: reconnect in 5 seconds ...");
                                     setTimeout(function() {
                                         Control.socketConnect();
                                     }, 5000);
-                                });*/
-                                // 修改--190725
-                                if (!_kline.default.instance.stompClient || !_kline.default.instance.socketConnected) {
-                                    _kline.default.instance.stompClient = new WebSocket(_kline.default.instance.url);
-                                    _kline.default.instance.socketConnected = true;
-                                }
-                                // 修改readyState --190725     
-                                if (_kline.default.instance.stompClient.readyState === 1) {
-                                    console.log('DEBUG: already connected');
-                                    return;
-                                }
-
-                                if (!_kline.default.instance.debug) { //Kline.instance.stompClient.debug = null;
-                                }
-
-                                _kline.default.instance.stompClient.onopen = function() {
-                                    console.log("DEBUG: stompClient onopen");
-                                    Control.requestData(true);
-                                };
-
-                                _kline.default.instance.stompClient.onclose = function() {
-                                    console.log("DEBUG: stompClient onclose");
-                                };
-                                _kline.default.instance.stompClient.onmessage = Control.subscribeCallback;
+                                });
                             }
                         }]);
 
@@ -7301,6 +7276,7 @@
                                     h: 20
                                 };
                                 var selIndex = timeline.getSelectedIndex();
+                                // console.log('selIndex----', selIndex);
                                 if (selIndex < 0) return;
                                 var data = ds.getDataAt(selIndex);
                                 var digits = ds.getDecimalDigits();
@@ -8090,13 +8066,48 @@
                         _createClass(COrderGraphPlotter, [{
                             key: "Draw",
                             value: function Draw(context) {
-                                return this._Draw_(context);
+                                // 190821 画深度线
+                                // return this._Draw_(context);
                             }
                         }, {
+                            /**
+                             * 190821 展示深度数据
+                             */
                             key: "_Draw_",
                             value: function _Draw_(context) {
-                                // 清除逻辑处理
-                                return;
+
+                                if (this.Update() === false) return;
+                                if (this.updateData() === false) return;
+                                this.m_top = this.m_pArea.getTop();
+                                this.m_bottom = this.m_pArea.getBottom();
+                                this.m_left = this.m_pArea.getLeft();
+                                this.m_right = this.m_pArea.getRight();
+                                context.save();
+                                context.rect(this.m_left, this.m_top, this.m_right - this.m_left, this.m_bottom - this.m_top);
+                                context.clip();
+
+                                var all = _chart_manager.ChartManager.instance.getChart()._depthData;
+
+                                this.x_offset = 0;
+                                this.y_offset = 0;
+                                var ask_tmp = {};
+                                var bid_tmp = {};
+                                ask_tmp.x = this.m_left + all.array[this.m_ask_si].amounts * this.m_Step;
+                                ask_tmp.y = this.m_pRange.toY(all.array[this.m_ask_si].rate);
+                                bid_tmp.x = this.m_left + all.array[this.m_bid_si].amounts * this.m_Step;
+                                bid_tmp.y = this.m_pRange.toY(all.array[this.m_bid_si].rate);
+
+                                if (Math.abs(ask_tmp.y - bid_tmp.y) < 1) {
+                                    this.y_offset = 1;
+                                }
+
+                                this.x_offset = 1;
+                                this.DrawBackground(context);
+                                this.UpdatePoints();
+                                this.FillBlack(context);
+                                this.DrawGradations(context);
+                                this.DrawLine(context);
+                                context.restore();
                             }
                         }, {
                             key: "DrawBackground",
@@ -10412,6 +10423,9 @@
                         _createClass(MainArea, [{
                             key: "onMouseMove",
                             value: function onMouseMove(x, y) {
+
+
+                                // console.log('鼠标拖动----', this._oldX, this._oldY);
                                 var mgr = _chart_manager.ChartManager.instance;
                                 if (mgr._capturingMouseArea === this)
                                     if (this._dragStarted === false)
@@ -10420,6 +10434,8 @@
                                 if (this._dragStarted) {
                                     mgr.hideCursor();
                                     if (mgr.onToolMouseDrag(this.getFrameName(), x, y)) return this;
+
+                                    // 鼠标拖拽改变图表
                                     mgr.getTimeline(this.getDataSourceName()).move(x - this._oldX);
                                     return this;
                                 }
@@ -16075,8 +16091,9 @@
                             value: function setCurrentPeriod(period) {
                                 this._range = _kline.default.instance.periodMap[period];
 
-                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.readyState === 1) {
+                                if (_kline.default.instance.type === "stomp" && _kline.default.instance.stompClient.ws.readyState === 1) {
                                     _kline.default.instance.subscribed.unsubscribe();
+
                                     _kline.default.instance.subscribed = _kline.default.instance.stompClient.subscribe(_kline.default.instance.subscribePath + '/' + _kline.default.instance.symbol + '/' + this._range, _control.Control.subscribeCallback);
                                 }
 
@@ -16809,6 +16826,7 @@
 
                                 this._firstIndex = this.validateFirstIndex(this._savedFirstIndex - this.calcColumnCount(x), this._maxItemCount);
                                 this._updated = true;
+                                // console.log(this._selectedIndex);
                                 if (this._selectedIndex >= 0) this.validateSelectedIndex();
                             }
                         }, {
@@ -18651,7 +18669,7 @@
 
 
                 // module
-                exports.push([module.i, "html,\r\nbody {\r\n    min-height: 100%;\r\n    margin: 0;\r\n    min-width: 100%\r\n}\r\n\r\n.chart_container {\r\n    cursor: default;\r\n    font-family: arial, sans, serif;\r\n    font-size: 12px;\r\n    height: 100%;\r\n    position: relative;\r\n    width: 100%\r\n}\r\n\r\n.chart_container div,\r\n.chart_container ul,\r\n.chart_container form {\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.chart_container a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container ul {\r\n    list-style: none;\r\n    border: 0;\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.chart_container button {\r\n    cursor: pointer\r\n}\r\n\r\n#chart_dom_elem_cache {\r\n    *font-weight: bold;\r\n    position: absolute;\r\n    visibility: hidden;\r\n    z-index: -1\r\n}\r\n\r\n#chart_toolbar {\r\n    border-bottom: 1px solid;\r\n    *font-weight: bold;\r\n    height: 29px;\r\n    position: absolute;\r\n    z-index: 3\r\n}\r\n\r\n.chart_container.dark #chart_toolbar {\r\n    background-color: #0a0a0a;\r\n    border-bottom-color: #404040\r\n}\r\n\r\n.chart_container.light #chart_toolbar {\r\n    background-color: #fff;\r\n    border-bottom-color: #afb1b3\r\n}\r\n\r\n.chart_container .chart_toolbar_sep {\r\n    float: left;\r\n    height: 100%;\r\n    width: 16px\r\n}\r\n\r\n.chart_container .chart_toolbar_minisep {\r\n    float: left;\r\n    height: 100%;\r\n    width: 4px\r\n}\r\n\r\n.chart_container .chart_dropdown {\r\n    display: inline-block;\r\n    float: left;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container .chart_dropdown_t {\r\n    background-origin: content-box;\r\n    background-repeat: no-repeat;\r\n    border: 1px solid;\r\n    border-bottom-width: 0;\r\n    margin-top: 3px;\r\n    padding-right: 10px;\r\n    z-index: 101;\r\n    position: relative\r\n}\r\n\r\n.chart_container .chart_dropdown_t a {\r\n    display: inline-block;\r\n    padding: 3px 12px 5px 10px\r\n}\r\n\r\n.chart_container .chart_dropdown_data {\r\n    border: 1px solid;\r\n    display: none;\r\n    position: absolute;\r\n    padding: 6px 8px 6px 8px;\r\n    margin-top: -1px;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container .chart_dropdown_data table {\r\n    border-collapse: collapse;\r\n    font-weight: normal;\r\n    white-space: nowrap\r\n}\r\n\r\n.chart_container .chart_dropdown_data td {\r\n    border-bottom: 1px solid;\r\n    padding: 8px 6px;\r\n    vertical-align: top\r\n}\r\n\r\n.market_chooser .chart_dropdown_data {\r\n    width: 370px\r\n}\r\n\r\n.market_chooser .chart_dropdown_data td {\r\n    border-bottom: 1px solid;\r\n    padding: 1px 6px !important;\r\n    vertical-align: top;\r\n    line-height: 24px\r\n}\r\n\r\n.market_chooser li {\r\n    float: left;\r\n    width: 80px;\r\n    height: 24px;\r\n    line-height: 24px\r\n}\r\n\r\n.chart_container .chart_dropdown_data td.marketName_ a.dark {\r\n    color: #fff\r\n}\r\n\r\n.chart_container .chart_dropdown_data td.marketName_ a.light {\r\n    color: #000\r\n}\r\n\r\n.chart_container .chart_dropdown_data table tr:last-child td {\r\n    border-bottom: 0\r\n}\r\n\r\n.chart_container .chart_dropdown_data li {\r\n    white-space: nowrap;\r\n    display: inline-block\r\n}\r\n\r\n.chart_container .chart_dropdown_data a {\r\n    text-decoration: none;\r\n    cursor: pointer;\r\n    padding: 5px 6px 5px 6px\r\n}\r\n\r\n.chart_container .chart_dropdown-hover.chart_dropdown_data {\r\n    display: block\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data td {\r\n    padding: 8px 6px 0 6px\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data li {\r\n    display: block;\r\n    height: 26px\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data a {\r\n    cursor: pointer\r\n}\r\n\r\n#chart_dropdown_themes .chart_dropdown_data td:first-child {\r\n    padding: 6px 1px 7px 6px\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_t {\r\n    background-image: url(" + escape(__webpack_require__(35)) + ");\r\n    background-position: right 9px;\r\n    border-color: #0a0a0a;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_dropdown-hover.chart_dropdown_t {\r\n    background-color: #0a0a0a;\r\n    background-image: url(" + escape(__webpack_require__(36)) + ");\r\n    background-position: right 8px;\r\n    border-color: #606060;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data {\r\n    background-color: rgba(10, 10, 10, 0.8);\r\n    border-color: #606060\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data td {\r\n    border-bottom-color: #404040;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a {\r\n    color: #1987da\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a:hover {\r\n    background-color: #383838\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a.selected {\r\n    color: #ffac00\r\n}\r\n\r\n.chart_container.light .chart_dropdown_t {\r\n    background-image: url(" + escape(__webpack_require__(37)) + ");\r\n    background-position: right 10px;\r\n    border-color: #fff;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown-hover.chart_dropdown_t {\r\n    background-color: #fff;\r\n    background-image: url(" + escape(__webpack_require__(38)) + ");\r\n    background-position: right 9px;\r\n    border-color: #4c4f53;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data {\r\n    background-color: #fff;\r\n    border-color: #4c4f53\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data td {\r\n    border-bottom-color: #e4e5e6;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data li a {\r\n    color: #1478c8\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data a:hover {\r\n    background-color: #f4f4f4\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data a.selected {\r\n    color: #f27935\r\n}\r\n\r\n.chart_container .chart_toolbar_label {\r\n    cursor: default;\r\n    display: inline-block;\r\n    float: left;\r\n    padding: 7px 4px\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_label {\r\n    border-color: #232323;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.light .chart_toolbar_label {\r\n    border-color: #fff;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container .chart_toolbar_button {\r\n    border: 1px solid;\r\n    cursor: pointer;\r\n    float: left;\r\n    margin: 3px 2px;\r\n    padding: 3px 10px;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button {\r\n    border-color: #404040;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button:hover {\r\n    background-color: #383838;\r\n    border-color: #606060;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button.selected {\r\n    background-color: #383838;\r\n    border-color: #606060;\r\n    color: #ffac00\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button.selected:hover {\r\n    background-color: #474747;\r\n    border-color: #808080;\r\n    color: #ffac00\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button {\r\n    border-color: #ccc;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button:hover {\r\n    background-color: #f4f4f4;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button.selected {\r\n    background-color: #f4f4f4;\r\n    border-color: #f27935;\r\n    color: #f27935\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup {\r\n    float: left\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li {\r\n    display: inline-block;\r\n    padding: 4px 0;\r\n    margin: 3px 0\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li a {\r\n    cursor: pointer;\r\n    padding: 4px 4px\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a {\r\n    color: #1987da\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a:hover {\r\n    background-color: #383838\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a.selected {\r\n    color: #ffac00\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a {\r\n    color: #1478c8\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a:hover {\r\n    background-color: #f4f4f4\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a.selected {\r\n    color: #f27935\r\n}\r\n\r\n#chart_toolbar_periods_horz {\r\n    display: inline-block;\r\n    float: left;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolbar_periods_vert {\r\n    float: left\r\n}\r\n\r\n.chart_container a.chart_icon {\r\n    border: 1px solid;\r\n    height: 16px;\r\n    padding: 0;\r\n    width: 16px;\r\n    box-sizing:border-box;\r\n}\r\n\r\n.chart_container a.chart_icon:hover {\r\n    border-width: 2px;\r\n}\r\n\r\n.chart_container .chart_dropdown_data a.chart_icon {\r\n    display: inline-block;\r\n    margin: 0 6px 0 6px\r\n}\r\n\r\n.chart_container a.chart_icon_theme_dark,\r\n.chart_container .chart_dropdown_data li a.chart_icon_theme_dark:hover {\r\n    background-color: #000\r\n}\r\n\r\n.chart_container a.chart_icon_theme_light,\r\n.chart_container .chart_dropdown_data li a.chart_icon_theme_light:hover {\r\n    background-color: #fff\r\n}\r\n\r\n.chart_container #chart_toolbar_theme {\r\n    float: left;\r\n    padding: 0 8px\r\n}\r\n\r\n.chart_container #chart_toolbar_theme a.chart_icon {\r\n    cursor: pointer;\r\n    float: left;\r\n    margin: 6px 4px\r\n}\r\n\r\n.chart_container #chart_select_theme td:last-child {\r\n    padding: 6px 6px 0 8px\r\n}\r\n\r\n.chart_container #chart_select_theme li {\r\n    padding: 0 4px 0 4px\r\n}\r\n\r\n.chart_container.dark a.chart_icon {\r\n    border-color: #aaa\r\n}\r\n\r\n.chart_container.dark a.chart_icon:hover {\r\n    border-color: #1987da\r\n}\r\n\r\n.chart_container.dark a.chart_icon.selected {\r\n    border-color: #ffac00\r\n}\r\n\r\n.chart_container.light a.chart_icon {\r\n    border-color: #aaa\r\n}\r\n\r\n.chart_container.light a.chart_icon.selected {\r\n    border-color: #f27935\r\n}\r\n\r\n.chart_container #chart_updated_time {\r\n    float: right;\r\n    margin: 4px 3px;\r\n    padding: 3px 10px\r\n}\r\n\r\n.chart_container.dark #chart_updated_time {\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.light #chart_updated_time {\r\n    color: #393c40\r\n}\r\n\r\n#chart_toolpanel {\r\n    border-right: 1px solid;\r\n    display: none;\r\n    position: absolute;\r\n    width: 32px;\r\n    z-index: 2\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_separator {\r\n    position: relative;\r\n    height: 4px\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_button {\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_icon {\r\n    background-origin: content-box;\r\n    background-repeat: no-repeat;\r\n    border: 1px solid;\r\n    cursor: pointer;\r\n    height: 16px;\r\n    margin: 1px 4px 1px 4px;\r\n    padding: 3px;\r\n    position: relative;\r\n    width: 16px;\r\n    z-index: 101\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_tip {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    display: none;\r\n    *font-weight: bold;\r\n    position: absolute;\r\n    padding: 3px 6px 4px 6px;\r\n    margin-left: 36px;\r\n    margin-top: -25px;\r\n    white-space: nowrap;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_button:hover .chart_toolpanel_tip {\r\n    display: block\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel {\r\n    background-color: #0a0a0a;\r\n    border-right-color: #404040\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_icon {\r\n    background-color: #0a0a0a;\r\n    border-color: #0a0a0a\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_button:hover .chart_toolpanel_icon {\r\n    background-color: #404040;\r\n    border-color: #666\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-color: #080808;\r\n    border-color: #666\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_tip {\r\n    background-color: #ffac00;\r\n    border-color: #ffac00;\r\n    color: #0a0a0a\r\n}\r\n\r\n.chart_container.light #chart_toolpanel {\r\n    background-color: #fff;\r\n    border-right-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_icon {\r\n    background-color: #fff;\r\n    border-color: #fff\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_button:hover .chart_toolpanel_icon {\r\n    background-color: #eee;\r\n    border-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-color: #f4f4f4;\r\n    border-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_tip {\r\n    background-color: #f27938;\r\n    border-color: #f27938;\r\n    color: #eee\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel .chart_toolpanel_button .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(39)) + ")\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(40)) + ")\r\n}\r\n\r\n.chart_container.dark #chart_toolbar .chart_BoxSize {\r\n    background: url(" + escape(__webpack_require__(41)) + ") no-repeat;\r\n}\r\n\r\n.chart_container.light #chart_toolpanel .chart_toolpanel_button .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(42)) + ")\r\n}\r\n\r\n.chart_container.light #chart_toolpanel .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(43)) + ")\r\n}\r\n\r\n.chart_container.light #chart_toolbar .chart_BoxSize {\r\n    background: url(" + escape(__webpack_require__(44)) + ") no-repeat;\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_Cursor {\r\n    background-position: 0 0\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_CrossCursor {\r\n    background-position: 0 -20px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_SegLine {\r\n    background-position: 0 -40px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_StraightLine {\r\n    background-position: 0 -60px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_RayLine {\r\n    background-position: 0 -100px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_ArrowLine {\r\n    background-position: 0 -80px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriSegLine {\r\n    background-position: 0 -160px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriStraightLine {\r\n    background-position: 0 -120px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriRayLine {\r\n    background-position: 0 -140px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_VertiStraightLine {\r\n    background-position: 0 -180px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_PriceLine {\r\n    background-position: 0 -200px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_TriParallelLine {\r\n    background-position: 0 -220px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_BiParallelLine {\r\n    background-position: 0 -240px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_BiParallelRayLine {\r\n    background-position: 0 -260px\r\n}\r\n\r\n.chart_container .chart_toolpanel_button #chart_DrawFibRetrace {\r\n    background-position: 0 -280px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_DrawFibFans {\r\n    background-position: 0 -300px\r\n}\r\n\r\n#chart_tabbar {\r\n    border-top: 1px solid;\r\n    cursor: default;\r\n    display: none;\r\n    *font-weight: bold;\r\n    height: 22px;\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 1\r\n}\r\n\r\n#chart_tabbar ul {\r\n    height: 100%;\r\n    list-style: none;\r\n    padding: 0 0 0 4px\r\n}\r\n\r\n#chart_tabbar li {\r\n    display: inline-block;\r\n    height: 100%;\r\n    margin: 0\r\n}\r\n\r\n#chart_tabbar a {\r\n    cursor: pointer;\r\n    display: inline-block;\r\n    height: 100%;\r\n    margin: 0;\r\n    padding: 3px 4px 0 4px;\r\n    overflow: hidden\r\n}\r\n\r\n#chart_tabbar a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container.dark #chart_tabbar {\r\n    background-color: #0a0a0a;\r\n    border-top-color: #404040\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a {\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a:hover {\r\n    background-color: #383838;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a.selected {\r\n    color: #ffac00\r\n}\r\n\r\n.chart_container.light #chart_tabbar {\r\n    background-color: #fff;\r\n    border-top-color: #afb1b3\r\n}\r\n\r\n.chart_container.light #chart_tabbar a {\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_tabbar a:hover {\r\n    background-color: #f4f4f4;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_tabbar a.selected {\r\n    color: #f27935\r\n}\r\n\r\n#chart_canvasGroup {\r\n    position: absolute;\r\n    z-index: 0\r\n}\r\n\r\n#chart_mainCanvas {\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 0\r\n}\r\n\r\n#chart_overlayCanvas {\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 2\r\n}\r\n\r\n#chart_loading {\r\n    border: 1px solid;\r\n    border-radius: 4px;\r\n    font-size: 18px;\r\n    font-weight: bold;\r\n    line-height: 48px;\r\n    overflow: hidden;\r\n    position: absolute;\r\n    text-align: center;\r\n    visibility: hidden;\r\n    width: 200px;\r\n    z-index: 200\r\n}\r\n\r\n#chart_loading.activated {\r\n    visibility: visible\r\n}\r\n\r\n.chart_container.dark #chart_loading {\r\n    border-color: #aaa;\r\n    background-color: rgba(0, 0, 0, 0.6);\r\n    color: #ccc\r\n}\r\n\r\n.chart_container.light #chart_loading {\r\n    border-color: #afb1b3;\r\n    background-color: rgba(244, 244, 244, 0.8);\r\n    color: #393c40\r\n}\r\n\r\n#chart_parameter_settings {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    width: 640px;\r\n    position: absolute;\r\n    overflow: hidden;\r\n    visibility: hidden;\r\n    z-index: 500\r\n}\r\n\r\n#chart_parameter_settings.clicked {\r\n    visibility: visible\r\n}\r\n\r\n#chart_parameter_settings h2 {\r\n    padding: 8px 12px;\r\n    margin: 0\r\n}\r\n\r\n#chart_parameter_settings table {\r\n    border-collapse: collapse;\r\n    width: 100%\r\n}\r\n\r\n#chart_parameter_settings tr {\r\n    line-height: 32px\r\n}\r\n\r\n#chart_parameter_settings th {\r\n    text-align: right;\r\n    padding: 0 4px 0 16px\r\n}\r\n\r\n#chart_parameter_settings input {\r\n    width: 2em;\r\n    margin: 0 2px 0 2px\r\n}\r\n\r\n#chart_parameter_settings #close_settings {\r\n    border-radius: 4px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    margin: 8px auto;\r\n    padding: 5px 24px 5px 24px;\r\n    width: 84px\r\n}\r\n\r\n#chart_parameter_settings .chart_str_default {\r\n    margin-right: 24px\r\n}\r\n\r\n.chart_container.dark #chart_parameter_settings {\r\n    background-color: rgba(0, 0, 0, 0.9);\r\n    border-color: rgba(0, 0, 0, 0.9);\r\n    color: #ccc;\r\n}\r\n\r\n.chart_container.dark #chart_parameter_settings #close_settings {\r\n    background: #1887da;\r\n    color: #eee\r\n}\r\n\r\n.chart_container.light #chart_parameter_settings {\r\n    background-color: rgba(244, 244, 244, 0.8);\r\n    border-color: #afb1b3;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_parameter_settings #close_settings {\r\n    background: #1478c8;\r\n    color: #eee\r\n}\r\n\r\n.chart_container input,\r\n.chart_container button {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    padding: 4px\r\n}\r\n\r\n.chart_container input[type=text] {\r\n    width: 12em\r\n}\r\n\r\n.chart_container input[type=button],\r\n.chart_container input[type=submit],\r\n.chart_container button {\r\n    font-family: arial, sans, serif;\r\n    padding: 4px 8px;\r\n    cursor: pointer\r\n}\r\n\r\n.chart_container.dark input,\r\n.chart_container.dark button {\r\n    background-color: #151515;\r\n    border-color: #333;\r\n    color: #ccc\r\n}\r\n\r\n.chart_container.light input,\r\n.chart_container.light button {\r\n    background-color: #ddd;\r\n    border-color: #ddd;\r\n    color: #222\r\n}\r\n\r\n.trade_container {\r\n    width: 250px;\r\n    height: 100%;\r\n    float: right;\r\n    z-index: 99999;\r\n    font-size: 12px;\r\n    overflow: hidden\r\n}\r\n\r\n.trade_container.dark {\r\n    background: #0a0a0a;\r\n    color: #f1f1f1\r\n}\r\n\r\n.m_righttop {\r\n    position: fixed;\r\n    top: 0;\r\n    height: 41px;\r\n    line-height: 41px;\r\n    width: 230px;\r\n    text-align: right;\r\n    padding-right: 20px;\r\n    font-size: 16px;\r\n    color: #f78d15;\r\n    font-family: Gotham, \"Helvetica Neue\", Helvetica, Arial, sans-serif\r\n}\r\n\r\n.m_righttop em {\r\n    width: 123px;\r\n    height: 28px;\r\n    background-position: 0 0;\r\n    display: block;\r\n    float: right;\r\n    margin-top: 5px\r\n}\r\n\r\n.dark .m_righttop em {\r\n    background-position: 0 0\r\n}\r\n\r\n.m_rightbot {\r\n    height: 22px;\r\n    line-height: 22px;\r\n    border-top: 1px solid #404040;\r\n    width: 230px;\r\n    text-align: right;\r\n    padding-right: 20px;\r\n    background-color: #0a0a0a;\r\n    border-bottom-color: #404040\r\n}\r\n\r\n.m_guadan {\r\n    margin-top: 29px;\r\n    overflow: hidden;\r\n    border-left: 1px solid #404040;\r\n    border-top: 1px solid #404040\r\n}\r\n\r\n.m_guadan a {\r\n    font-weight: bold;\r\n    color: #FFF;\r\n    text-decoration: none\r\n}\r\n\r\n.light .m_guadan {\r\n    margin-top: 29px;\r\n    overflow: hidden;\r\n    border-left: 1px solid #afb1b3;\r\n    border-top: 1px solid #afb1b3\r\n}\r\n\r\n#orderbook #asks,\r\n#orderbook #gasks,\r\n#orderbook #bids,\r\n#orderbook #gbids {\r\n    height: 195px;\r\n    position: relative;\r\n    display: inline-block;\r\n    overflow: hidden\r\n}\r\n\r\n.symbol-title {\r\n    font-size: 14px;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    height: 16px;\r\n    line-height: 16px;\r\n    font-family: Arial, sans, serif;\r\n    padding: 5px\r\n}\r\n\r\n.symbol-title .dark {\r\n    color: #6BF\r\n}\r\n\r\n.symbol-title .infoDepth {\r\n    margin-left: 8px;\r\n    color: #f78d15\r\n}\r\n\r\n.symbol-title a:hover {\r\n    text-decoration: underline\r\n}\r\n\r\n#asks,\r\n#bids {\r\n    width: 150px\r\n}\r\n\r\n#orderbook {\r\n    padding-left: 3px;\r\n    border-bottom: 1px solid #222;\r\n    padding-bottom: 2px;\r\n    margin-left: 5px;\r\n    margin-bottom: 2px\r\n}\r\n\r\n#orderbook .table {\r\n    position: absolute;\r\n    border-collapse: collapse;\r\n    padding: 0;\r\n    margin: 0\r\n}\r\n\r\n#gasks .table,\r\n#asks .table {\r\n    bottom: 0\r\n}\r\n\r\n#orderbook .table .row {\r\n    padding: 0;\r\n    margin: 0;\r\n    height: 13px;\r\n    line-height: 13px;\r\n    font-family: Consolas, monospace\r\n}\r\n\r\n#orderbook .table .row {\r\n    line-height: 13px\r\n}\r\n\r\n#orderbook .table .g {\r\n    color: #666\r\n}\r\n\r\n#gasks,\r\n#gbids {\r\n    width: 80px\r\n}\r\n\r\n#gasks .amount,\r\n#gbids .amount {\r\n    float: right\r\n}\r\n\r\n#gasks .price,\r\n#gbids .price {\r\n    float: left;\r\n    text-align: right\r\n}\r\n\r\n.price {\r\n    margin-right: 10px\r\n}\r\n\r\n.price h {\r\n    visibility: hidden\r\n}\r\n\r\n.price g,\r\n.amount g {\r\n    color: #666\r\n}\r\n\r\n#price {\r\n    text-align: center;\r\n    font-size: 16px;\r\n    font-weight: bold;\r\n    height: 25px;\r\n    line-height: 25px\r\n}\r\n\r\n.trade_container .green {\r\n    color: #0F0\r\n}\r\n\r\n.trade_container .red {\r\n    color: #F00\r\n}\r\n\r\n.trade_container.dark #orderbook div.table div.remove g,\r\n.trade_container.dark #orderbook div.table div.remove span {\r\n    color: #444\r\n}\r\n\r\n.trade_container.light #orderbook div.table div.remove g,\r\n.trade_container.light #orderbook div.table div.remove span {\r\n    color: #ddd\r\n}\r\n\r\n.trade_container.dark #orderbook div.table div.add {\r\n    display: none;\r\n    background-color: rgba(238, 238, 238, 0.2)\r\n}\r\n\r\n.trade_container.light #orderbook div.table div.add {\r\n    display: none;\r\n    background-color: rgba(100, 100, 100, 0.2)\r\n}\r\n\r\n#trades {\r\n    overflow-y: auto;\r\n    text-align: left;\r\n    color: #666;\r\n    padding-top: 5px\r\n}\r\n\r\n.trade_container.light {\r\n    background: #fff;\r\n    border-left: 1px solid #afb1b3;\r\n    color: #000\r\n}\r\n\r\n.trade_container.light .m_righttop em {\r\n    background-position: 0 -32px\r\n}\r\n\r\n.trade_container.light .m_righttop {\r\n    position: fixed;\r\n    top: 0;\r\n    height: 40px;\r\n    line-height: 40px;\r\n    background: #FFF;\r\n    width: 230px;\r\n    border-bottom: 1px solid #afb1b3;\r\n    text-align: right;\r\n    padding-right: 20px\r\n}\r\n\r\n.trade_container.light #trades.trades table {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light #trades.trades .v {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light #trades.trades .v g {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light .m_rightbot {\r\n    background: #fff;\r\n    border-top: 1px solid #afb1b3\r\n}\r\n\r\n.trade_container.light #orderbook {\r\n    border-bottom: 1px solid #afb1b3\r\n}\r\n\r\n.trades_list {\r\n    padding-left: 25px\r\n}\r\n\r\n.trades_list ul {\r\n    width: 200px;\r\n    height: 14px;\r\n    line-height: 14px;\r\n    text-align: left;\r\n    list-style: none;\r\n    clear: both;\r\n    zoom: 1;\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.trades_list ul li {\r\n    height: 14px;\r\n    line-height: 14px;\r\n    color: #999;\r\n    font-size: 12px;\r\n    list-style: none;\r\n    float: left;\r\n    *display: inline;\r\n    margin: 0;\r\n    padding: 0;\r\n    font-family: Consolas, monospace\r\n}\r\n\r\n.trades_list ul li.tm {\r\n    width: 62px;\r\n    color: #999\r\n}\r\n\r\n.trades_list ul li.pr-green {\r\n    width: 65px;\r\n    color: #6c6\r\n}\r\n\r\n.trades_list ul li.pr-red {\r\n    width: 65px;\r\n    color: #c66\r\n}\r\n\r\n.trades_list ul li.vl {\r\n    width: 60px;\r\n    color: #ccc\r\n}\r\n\r\n.trades_list ul li.vl g {\r\n    color: #666\r\n}\r\n\r\n.trade_container.dark .trades_list ul.newul {\r\n    display: none;\r\n    background-color: rgba(238, 238, 238, 0.2)\r\n}\r\n\r\n.trade_container.light .trades_list ul.newul {\r\n    display: none;\r\n    background-color: rgba(100, 100, 100, 0.2)\r\n}\r\n\r\n.light .trades_list ul li.tm {\r\n    color: #333\r\n}\r\n\r\n.light .trades_list ul li.pr-green {\r\n    color: #6c6\r\n}\r\n\r\n.light .trades_list ul li.pr-red {\r\n    color: #c66\r\n}\r\n\r\n.light .trades_list ul li.vl {\r\n    color: #333\r\n}\r\n\r\n.light .trades_list ul li.vl g {\r\n    color: #333\r\n}\r\n\r\n.container .nav {\r\n    margin: 0;\r\n    list-style: none;\r\n    padding: 0 0 0 3px;\r\n    height: 41px\r\n}\r\n\r\n.container .nav li {\r\n    display: inline-block;\r\n    margin-right: 9px\r\n}\r\n\r\n.container a {\r\n    text-decoration: none;\r\n    color: #6BF;\r\n    font-family: Arial, sans, serif\r\n}\r\n\r\n.container a:hover {\r\n    text-decoration: underline\r\n}\r\n\r\n.container a.active {\r\n    color: #FC9\r\n}\r\n\r\n.container span {\r\n    margin-left: 3px;\r\n    font-family: Consolas, monospace;\r\n    color: #ccc\r\n}\r\n\r\n.light .container span {\r\n    color: #333\r\n}\r\n\r\n.light .container a {\r\n    text-decoration: none;\r\n    color: #1478c8;\r\n    font-family: Arial, sans, serif\r\n}\r\n\r\n.chart_BoxSize {\r\n    width: 20px;\r\n    height: 20px\r\n}\r\n", ""]);
+                exports.push([module.i, "html,\r\nbody {\r\n    min-height: 100%;\r\n    margin: 0;\r\n    min-width: 100%\r\n}\r\n\r\n.chart_container {\r\n    cursor: default;\r\n    font-family: arial, sans, serif;\r\n    font-size: 12px;\r\n    height: 100%;\r\n    position: relative;\r\n    width: 100%\r\n}\r\n\r\n.chart_container div,\r\n.chart_container ul,\r\n.chart_container form {\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.chart_container a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container ul {\r\n    list-style: none;\r\n    border: 0;\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.chart_container button {\r\n    cursor: pointer\r\n}\r\n\r\n#chart_dom_elem_cache {\r\n    *font-weight: bold;\r\n    position: absolute;\r\n    visibility: hidden;\r\n    z-index: -1\r\n}\r\n\r\n#chart_toolbar {\r\n    border-bottom: 1px solid;\r\n    *font-weight: bold;\r\n    height: 29px;\r\n    position: absolute;\r\n    z-index: 3\r\n}\r\n\r\n.chart_container.dark #chart_toolbar {\r\n    background-color: #1d1f23;\r\n    border-bottom-color: #404040\r\n}\r\n\r\n.chart_container.light #chart_toolbar {\r\n    background-color: #fff;\r\n    border-bottom-color: #afb1b3\r\n}\r\n\r\n.chart_container .chart_toolbar_sep {\r\n    float: left;\r\n    height: 100%;\r\n    width: 16px\r\n}\r\n\r\n.chart_container .chart_toolbar_minisep {\r\n    float: left;\r\n    height: 100%;\r\n    width: 4px\r\n}\r\n\r\n.chart_container .chart_dropdown {\r\n    display: inline-block;\r\n    float: left;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container .chart_dropdown_t {\r\n    background-origin: content-box;\r\n    background-repeat: no-repeat;\r\n    border: 1px solid;\r\n    border-bottom-width: 0;\r\n    margin-top: 3px;\r\n    padding-right: 10px;\r\n    z-index: 101;\r\n    position: relative\r\n}\r\n\r\n.chart_container .chart_dropdown_t a {\r\n    display: inline-block;\r\n    padding: 3px 12px 5px 10px\r\n}\r\n\r\n.chart_container .chart_dropdown_data {\r\n    border: 1px solid;\r\n    display: none;\r\n    position: absolute;\r\n    padding: 6px 8px 6px 8px;\r\n    margin-top: -1px;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container .chart_dropdown_data table {\r\n    border-collapse: collapse;\r\n    font-weight: normal;\r\n    white-space: nowrap\r\n}\r\n\r\n.chart_container .chart_dropdown_data td {\r\n    border-bottom: 1px solid;\r\n    padding: 8px 6px;\r\n    vertical-align: top\r\n}\r\n\r\n.market_chooser .chart_dropdown_data {\r\n    width: 370px\r\n}\r\n\r\n.market_chooser .chart_dropdown_data td {\r\n    border-bottom: 1px solid;\r\n    padding: 1px 6px !important;\r\n    vertical-align: top;\r\n    line-height: 24px\r\n}\r\n\r\n.market_chooser li {\r\n    float: left;\r\n    width: 80px;\r\n    height: 24px;\r\n    line-height: 24px\r\n}\r\n\r\n.chart_container .chart_dropdown_data td.marketName_ a.dark {\r\n    color: #fff\r\n}\r\n\r\n.chart_container .chart_dropdown_data td.marketName_ a.light {\r\n    color: #000\r\n}\r\n\r\n.chart_container .chart_dropdown_data table tr:last-child td {\r\n    border-bottom: 0\r\n}\r\n\r\n.chart_container .chart_dropdown_data li {\r\n    white-space: nowrap;\r\n    display: inline-block\r\n}\r\n\r\n.chart_container .chart_dropdown_data a {\r\n    text-decoration: none;\r\n    cursor: pointer;\r\n    padding: 5px 6px 5px 6px\r\n}\r\n\r\n.chart_container .chart_dropdown-hover.chart_dropdown_data {\r\n    display: block\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data td {\r\n    padding: 8px 6px 0 6px\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data li {\r\n    display: block;\r\n    height: 26px\r\n}\r\n\r\n#chart_dropdown_symbols .chart_dropdown_data a {\r\n    cursor: pointer\r\n}\r\n\r\n#chart_dropdown_themes .chart_dropdown_data td:first-child {\r\n    padding: 6px 1px 7px 6px\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_t {\r\n    background-image: url(" + escape(__webpack_require__(35)) + ");\r\n    background-position: right 9px;\r\n    border-color: #1d1f23;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_dropdown-hover.chart_dropdown_t {\r\n    background-color: #1d1f23;\r\n    background-image: url(" + escape(__webpack_require__(36)) + ");\r\n    background-position: right 8px;\r\n    border-color: #606060;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data {\r\n    background-color: rgba(10, 10, 10, 0.8);\r\n    border-color: #606060\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data td {\r\n    border-bottom-color: #404040;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a {\r\n    color: #1987da\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a:hover {\r\n    background-color: #383838\r\n}\r\n\r\n.chart_container.dark .chart_dropdown_data li a.selected {\r\n    color: #ffff00\r\n}\r\n\r\n.chart_container.light .chart_dropdown_t {\r\n    background-image: url(" + escape(__webpack_require__(37)) + ");\r\n    background-position: right 10px;\r\n    border-color: #fff;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown-hover.chart_dropdown_t {\r\n    background-color: #fff;\r\n    background-image: url(" + escape(__webpack_require__(38)) + ");\r\n    background-position: right 9px;\r\n    border-color: #4c4f53;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data {\r\n    background-color: #fff;\r\n    border-color: #4c4f53\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data td {\r\n    border-bottom-color: #e4e5e6;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data li a {\r\n    color: #1478c8\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data a:hover {\r\n    background-color: #f4f4f4\r\n}\r\n\r\n.chart_container.light .chart_dropdown_data a.selected {\r\n    color: #f27935\r\n}\r\n\r\n.chart_container .chart_toolbar_label {\r\n    cursor: default;\r\n    display: inline-block;\r\n    float: left;\r\n    padding: 7px 4px\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_label {\r\n    border-color: #232323;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.light .chart_toolbar_label {\r\n    border-color: #fff;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container .chart_toolbar_button {\r\n    border: 1px solid;\r\n    cursor: pointer;\r\n    float: left;\r\n    margin: 3px 2px;\r\n    padding: 3px 10px;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button {\r\n    border-color: #404040;\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button:hover {\r\n    background-color: #383838;\r\n    border-color: #606060;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button.selected {\r\n    background-color: #383838;\r\n    border-color: #606060;\r\n    color: #ffff00\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_button.selected:hover {\r\n    background-color: #474747;\r\n    border-color: #808080;\r\n    color: #ffff00\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button {\r\n    border-color: #ccc;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button:hover {\r\n    background-color: #f4f4f4;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light .chart_toolbar_button.selected {\r\n    background-color: #f4f4f4;\r\n    border-color: #f27935;\r\n    color: #f27935\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup {\r\n    float: left\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li {\r\n    display: inline-block;\r\n    padding: 4px 0;\r\n    margin: 3px 0\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li a {\r\n    cursor: pointer;\r\n    padding: 4px 4px\r\n}\r\n\r\n.chart_container .chart_toolbar_tabgroup li a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a {\r\n    color: #1987da\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a:hover {\r\n    background-color: #383838\r\n}\r\n\r\n.chart_container.dark .chart_toolbar_tabgroup li a.selected {\r\n    color: #ffff00\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a {\r\n    color: #1478c8\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a:hover {\r\n    background-color: #f4f4f4\r\n}\r\n\r\n.chart_container.light .chart_toolbar_tabgroup li a.selected {\r\n    color: #f27935\r\n}\r\n\r\n#chart_toolbar_periods_horz {\r\n    display: inline-block;\r\n    float: left;\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolbar_periods_vert {\r\n    float: left\r\n}\r\n\r\n.chart_container a.chart_icon {\r\n    border: 1px solid;\r\n    height: 16px;\r\n    padding: 0;\r\n    width: 16px;\r\n    box-sizing:border-box;\r\n}\r\n\r\n.chart_container a.chart_icon:hover {\r\n    border-width: 2px;\r\n}\r\n\r\n.chart_container .chart_dropdown_data a.chart_icon {\r\n    display: inline-block;\r\n    margin: 0 6px 0 6px\r\n}\r\n\r\n.chart_container a.chart_icon_theme_dark,\r\n.chart_container .chart_dropdown_data li a.chart_icon_theme_dark:hover {\r\n    background-color: #000\r\n}\r\n\r\n.chart_container a.chart_icon_theme_light,\r\n.chart_container .chart_dropdown_data li a.chart_icon_theme_light:hover {\r\n    background-color: #fff\r\n}\r\n\r\n.chart_container #chart_toolbar_theme {\r\n    float: left;\r\n    padding: 0 8px\r\n}\r\n\r\n.chart_container #chart_toolbar_theme a.chart_icon {\r\n    cursor: pointer;\r\n    float: left;\r\n    margin: 6px 4px\r\n}\r\n\r\n.chart_container #chart_select_theme td:last-child {\r\n    padding: 6px 6px 0 8px\r\n}\r\n\r\n.chart_container #chart_select_theme li {\r\n    padding: 0 4px 0 4px\r\n}\r\n\r\n.chart_container.dark a.chart_icon {\r\n    border-color: #aaa\r\n}\r\n\r\n.chart_container.dark a.chart_icon:hover {\r\n    border-color: #1987da\r\n}\r\n\r\n.chart_container.dark a.chart_icon.selected {\r\n    border-color: #ffff00\r\n}\r\n\r\n.chart_container.light a.chart_icon {\r\n    border-color: #aaa\r\n}\r\n\r\n.chart_container.light a.chart_icon.selected {\r\n    border-color: #f27935\r\n}\r\n\r\n.chart_container #chart_updated_time {\r\n    float: right;\r\n    margin: 4px 3px;\r\n    padding: 3px 10px\r\n}\r\n\r\n.chart_container.dark #chart_updated_time {\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.light #chart_updated_time {\r\n    color: #393c40\r\n}\r\n\r\n#chart_toolpanel {\r\n    border-right: 1px solid;\r\n    display: none;\r\n    position: absolute;\r\n    width: 32px;\r\n    z-index: 2\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_separator {\r\n    position: relative;\r\n    height: 4px\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_button {\r\n    position: relative;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_icon {\r\n    background-origin: content-box;\r\n    background-repeat: no-repeat;\r\n    border: 1px solid;\r\n    cursor: pointer;\r\n    height: 16px;\r\n    margin: 1px 4px 1px 4px;\r\n    padding: 3px;\r\n    position: relative;\r\n    width: 16px;\r\n    z-index: 101\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_tip {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    display: none;\r\n    *font-weight: bold;\r\n    position: absolute;\r\n    padding: 3px 6px 4px 6px;\r\n    margin-left: 36px;\r\n    margin-top: -25px;\r\n    white-space: nowrap;\r\n    z-index: 100\r\n}\r\n\r\n#chart_toolpanel .chart_toolpanel_button:hover .chart_toolpanel_tip {\r\n    display: block\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel {\r\n    background-color: #1d1f23;\r\n    border-right-color: #404040\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_icon {\r\n    background-color: #1d1f23;\r\n    border-color: #1d1f23\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_button:hover .chart_toolpanel_icon {\r\n    background-color: #404040;\r\n    border-color: #666\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-color: #080808;\r\n    border-color: #666\r\n}\r\n\r\n.chart_container.dark .chart_toolpanel_tip {\r\n    background-color: #ffff00;\r\n    border-color: #ffff00;\r\n    color: #1d1f23\r\n}\r\n\r\n.chart_container.light #chart_toolpanel {\r\n    background-color: #fff;\r\n    border-right-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_icon {\r\n    background-color: #fff;\r\n    border-color: #fff\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_button:hover .chart_toolpanel_icon {\r\n    background-color: #eee;\r\n    border-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-color: #f4f4f4;\r\n    border-color: #afb1b3\r\n}\r\n\r\n.chart_container.light .chart_toolpanel_tip {\r\n    background-color: #f27938;\r\n    border-color: #f27938;\r\n    color: #eee\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel .chart_toolpanel_button .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(39)) + ")\r\n}\r\n\r\n.chart_container.dark #chart_toolpanel .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(40)) + ")\r\n}\r\n\r\n.chart_container.dark #chart_toolbar .chart_BoxSize {\r\n    background: url(" + escape(__webpack_require__(41)) + ") no-repeat;\r\n}\r\n\r\n.chart_container.light #chart_toolpanel .chart_toolpanel_button .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(42)) + ")\r\n}\r\n\r\n.chart_container.light #chart_toolpanel .chart_toolpanel_button.selected .chart_toolpanel_icon {\r\n    background-image: url(" + escape(__webpack_require__(43)) + ")\r\n}\r\n\r\n.chart_container.light #chart_toolbar .chart_BoxSize {\r\n    background: url(" + escape(__webpack_require__(44)) + ") no-repeat;\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_Cursor {\r\n    background-position: 0 0\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_CrossCursor {\r\n    background-position: 0 -20px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_SegLine {\r\n    background-position: 0 -40px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_StraightLine {\r\n    background-position: 0 -60px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_RayLine {\r\n    background-position: 0 -100px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_ArrowLine {\r\n    background-position: 0 -80px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriSegLine {\r\n    background-position: 0 -160px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriStraightLine {\r\n    background-position: 0 -120px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_HoriRayLine {\r\n    background-position: 0 -140px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_VertiStraightLine {\r\n    background-position: 0 -180px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_PriceLine {\r\n    background-position: 0 -200px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_TriParallelLine {\r\n    background-position: 0 -220px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_BiParallelLine {\r\n    background-position: 0 -240px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_BiParallelRayLine {\r\n    background-position: 0 -260px\r\n}\r\n\r\n.chart_container .chart_toolpanel_button #chart_DrawFibRetrace {\r\n    background-position: 0 -280px\r\n}\r\n\r\n.chart_container #chart_toolpanel #chart_DrawFibFans {\r\n    background-position: 0 -300px\r\n}\r\n\r\n#chart_tabbar {\r\n    border-top: 1px solid;\r\n    cursor: default;\r\n    display: none;\r\n    *font-weight: bold;\r\n    height: 22px;\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 1\r\n}\r\n\r\n#chart_tabbar ul {\r\n    height: 100%;\r\n    list-style: none;\r\n    padding: 0 0 0 4px\r\n}\r\n\r\n#chart_tabbar li {\r\n    display: inline-block;\r\n    height: 100%;\r\n    margin: 0\r\n}\r\n\r\n#chart_tabbar a {\r\n    cursor: pointer;\r\n    display: inline-block;\r\n    height: 100%;\r\n    margin: 0;\r\n    padding: 3px 4px 0 4px;\r\n    overflow: hidden\r\n}\r\n\r\n#chart_tabbar a:hover {\r\n    text-decoration: none\r\n}\r\n\r\n.chart_container.dark #chart_tabbar {\r\n    background-color: #1d1f23;\r\n    border-top-color: #404040\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a {\r\n    color: #e5e5e5\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a:hover {\r\n    background-color: #383838;\r\n    color: #fff\r\n}\r\n\r\n.chart_container.dark #chart_tabbar a.selected {\r\n    color: #ffff00\r\n}\r\n\r\n.chart_container.light #chart_tabbar {\r\n    background-color: #fff;\r\n    border-top-color: #afb1b3\r\n}\r\n\r\n.chart_container.light #chart_tabbar a {\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_tabbar a:hover {\r\n    background-color: #f4f4f4;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_tabbar a.selected {\r\n    color: #f27935\r\n}\r\n\r\n#chart_canvasGroup {\r\n    position: absolute;\r\n    z-index: 0\r\n}\r\n\r\n#chart_mainCanvas {\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 0\r\n}\r\n\r\n#chart_overlayCanvas {\r\n    overflow: hidden;\r\n    position: absolute;\r\n    z-index: 2\r\n}\r\n\r\n#chart_loading {\r\n    border: 1px solid;\r\n    border-radius: 4px;\r\n    font-size: 18px;\r\n    font-weight: bold;\r\n    line-height: 48px;\r\n    overflow: hidden;\r\n    position: absolute;\r\n    text-align: center;\r\n    visibility: hidden;\r\n    width: 200px;\r\n    z-index: 200\r\n}\r\n\r\n#chart_loading.activated {\r\n    visibility: visible\r\n}\r\n\r\n.chart_container.dark #chart_loading {\r\n    border-color: #aaa;\r\n    background-color: rgba(0, 0, 0, 0.6);\r\n    color: #ccc\r\n}\r\n\r\n.chart_container.light #chart_loading {\r\n    border-color: #afb1b3;\r\n    background-color: rgba(244, 244, 244, 0.8);\r\n    color: #393c40\r\n}\r\n\r\n#chart_parameter_settings {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    width: 640px;\r\n    position: absolute;\r\n    overflow: hidden;\r\n    visibility: hidden;\r\n    z-index: 500\r\n}\r\n\r\n#chart_parameter_settings.clicked {\r\n    visibility: visible\r\n}\r\n\r\n#chart_parameter_settings h2 {\r\n    padding: 8px 12px;\r\n    margin: 0\r\n}\r\n\r\n#chart_parameter_settings table {\r\n    border-collapse: collapse;\r\n    width: 100%\r\n}\r\n\r\n#chart_parameter_settings tr {\r\n    line-height: 32px\r\n}\r\n\r\n#chart_parameter_settings th {\r\n    text-align: right;\r\n    padding: 0 4px 0 16px\r\n}\r\n\r\n#chart_parameter_settings input {\r\n    width: 2em;\r\n    margin: 0 2px 0 2px\r\n}\r\n\r\n#chart_parameter_settings #close_settings {\r\n    border-radius: 4px;\r\n    cursor: pointer;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    margin: 8px auto;\r\n    padding: 5px 24px 5px 24px;\r\n    width: 84px\r\n}\r\n\r\n#chart_parameter_settings .chart_str_default {\r\n    margin-right: 24px\r\n}\r\n\r\n.chart_container.dark #chart_parameter_settings {\r\n    background-color: rgba(0, 0, 0, 0.9);\r\n    border-color: rgba(0, 0, 0, 0.9);\r\n    color: #ccc;\r\n}\r\n\r\n.chart_container.dark #chart_parameter_settings #close_settings {\r\n    background: #1887da;\r\n    color: #eee\r\n}\r\n\r\n.chart_container.light #chart_parameter_settings {\r\n    background-color: rgba(244, 244, 244, 0.8);\r\n    border-color: #afb1b3;\r\n    color: #393c40\r\n}\r\n\r\n.chart_container.light #chart_parameter_settings #close_settings {\r\n    background: #1478c8;\r\n    color: #eee\r\n}\r\n\r\n.chart_container input,\r\n.chart_container button {\r\n    border-radius: 4px;\r\n    border: 1px solid;\r\n    padding: 4px\r\n}\r\n\r\n.chart_container input[type=text] {\r\n    width: 12em\r\n}\r\n\r\n.chart_container input[type=button],\r\n.chart_container input[type=submit],\r\n.chart_container button {\r\n    font-family: arial, sans, serif;\r\n    padding: 4px 8px;\r\n    cursor: pointer\r\n}\r\n\r\n.chart_container.dark input,\r\n.chart_container.dark button {\r\n    background-color: #151515;\r\n    border-color: #333;\r\n    color: #ccc\r\n}\r\n\r\n.chart_container.light input,\r\n.chart_container.light button {\r\n    background-color: #ddd;\r\n    border-color: #ddd;\r\n    color: #222\r\n}\r\n\r\n.trade_container {\r\n    width: 250px;\r\n    height: 100%;\r\n    float: right;\r\n    z-index: 99999;\r\n    font-size: 12px;\r\n    overflow: hidden\r\n}\r\n\r\n.trade_container.dark {\r\n    background: #1d1f23;\r\n    color: #f1f1f1\r\n}\r\n\r\n.m_righttop {\r\n    position: fixed;\r\n    top: 0;\r\n    height: 41px;\r\n    line-height: 41px;\r\n    width: 230px;\r\n    text-align: right;\r\n    padding-right: 20px;\r\n    font-size: 16px;\r\n    color: #f78d15;\r\n    font-family: Gotham, \"Helvetica Neue\", Helvetica, Arial, sans-serif\r\n}\r\n\r\n.m_righttop em {\r\n    width: 123px;\r\n    height: 28px;\r\n    background-position: 0 0;\r\n    display: block;\r\n    float: right;\r\n    margin-top: 5px\r\n}\r\n\r\n.dark .m_righttop em {\r\n    background-position: 0 0\r\n}\r\n\r\n.m_rightbot {\r\n    height: 22px;\r\n    line-height: 22px;\r\n    border-top: 1px solid #404040;\r\n    width: 230px;\r\n    text-align: right;\r\n    padding-right: 20px;\r\n    background-color: #1d1f23;\r\n    border-bottom-color: #404040\r\n}\r\n\r\n.m_guadan {\r\n    margin-top: 29px;\r\n    overflow: hidden;\r\n    border-left: 1px solid #404040;\r\n    border-top: 1px solid #404040\r\n}\r\n\r\n.m_guadan a {\r\n    font-weight: bold;\r\n    color: #FFF;\r\n    text-decoration: none\r\n}\r\n\r\n.light .m_guadan {\r\n    margin-top: 29px;\r\n    overflow: hidden;\r\n    border-left: 1px solid #afb1b3;\r\n    border-top: 1px solid #afb1b3\r\n}\r\n\r\n#orderbook #asks,\r\n#orderbook #gasks,\r\n#orderbook #bids,\r\n#orderbook #gbids {\r\n    height: 195px;\r\n    position: relative;\r\n    display: inline-block;\r\n    overflow: hidden\r\n}\r\n\r\n.symbol-title {\r\n    font-size: 14px;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    height: 16px;\r\n    line-height: 16px;\r\n    font-family: Arial, sans, serif;\r\n    padding: 5px\r\n}\r\n\r\n.symbol-title .dark {\r\n    color: #6BF\r\n}\r\n\r\n.symbol-title .infoDepth {\r\n    margin-left: 8px;\r\n    color: #f78d15\r\n}\r\n\r\n.symbol-title a:hover {\r\n    text-decoration: underline\r\n}\r\n\r\n#asks,\r\n#bids {\r\n    width: 150px\r\n}\r\n\r\n#orderbook {\r\n    padding-left: 3px;\r\n    border-bottom: 1px solid #222;\r\n    padding-bottom: 2px;\r\n    margin-left: 5px;\r\n    margin-bottom: 2px\r\n}\r\n\r\n#orderbook .table {\r\n    position: absolute;\r\n    border-collapse: collapse;\r\n    padding: 0;\r\n    margin: 0\r\n}\r\n\r\n#gasks .table,\r\n#asks .table {\r\n    bottom: 0\r\n}\r\n\r\n#orderbook .table .row {\r\n    padding: 0;\r\n    margin: 0;\r\n    height: 13px;\r\n    line-height: 13px;\r\n    font-family: Consolas, monospace\r\n}\r\n\r\n#orderbook .table .row {\r\n    line-height: 13px\r\n}\r\n\r\n#orderbook .table .g {\r\n    color: #666\r\n}\r\n\r\n#gasks,\r\n#gbids {\r\n    width: 80px\r\n}\r\n\r\n#gasks .amount,\r\n#gbids .amount {\r\n    float: right\r\n}\r\n\r\n#gasks .price,\r\n#gbids .price {\r\n    float: left;\r\n    text-align: right\r\n}\r\n\r\n.price {\r\n    margin-right: 10px\r\n}\r\n\r\n.price h {\r\n    visibility: hidden\r\n}\r\n\r\n.price g,\r\n.amount g {\r\n    color: #666\r\n}\r\n\r\n#price {\r\n    text-align: center;\r\n    font-size: 16px;\r\n    font-weight: bold;\r\n    height: 25px;\r\n    line-height: 25px\r\n}\r\n\r\n.trade_container .green {\r\n    color: #0F0\r\n}\r\n\r\n.trade_container .red {\r\n    color: #F00\r\n}\r\n\r\n.trade_container.dark #orderbook div.table div.remove g,\r\n.trade_container.dark #orderbook div.table div.remove span {\r\n    color: #444\r\n}\r\n\r\n.trade_container.light #orderbook div.table div.remove g,\r\n.trade_container.light #orderbook div.table div.remove span {\r\n    color: #ddd\r\n}\r\n\r\n.trade_container.dark #orderbook div.table div.add {\r\n    display: none;\r\n    background-color: rgba(238, 238, 238, 0.2)\r\n}\r\n\r\n.trade_container.light #orderbook div.table div.add {\r\n    display: none;\r\n    background-color: rgba(100, 100, 100, 0.2)\r\n}\r\n\r\n#trades {\r\n    overflow-y: auto;\r\n    text-align: left;\r\n    color: #666;\r\n    padding-top: 5px\r\n}\r\n\r\n.trade_container.light {\r\n    background: #fff;\r\n    border-left: 1px solid #afb1b3;\r\n    color: #000\r\n}\r\n\r\n.trade_container.light .m_righttop em {\r\n    background-position: 0 -32px\r\n}\r\n\r\n.trade_container.light .m_righttop {\r\n    position: fixed;\r\n    top: 0;\r\n    height: 40px;\r\n    line-height: 40px;\r\n    background: #FFF;\r\n    width: 230px;\r\n    border-bottom: 1px solid #afb1b3;\r\n    text-align: right;\r\n    padding-right: 20px\r\n}\r\n\r\n.trade_container.light #trades.trades table {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light #trades.trades .v {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light #trades.trades .v g {\r\n    color: #333\r\n}\r\n\r\n.trade_container.light .m_rightbot {\r\n    background: #fff;\r\n    border-top: 1px solid #afb1b3\r\n}\r\n\r\n.trade_container.light #orderbook {\r\n    border-bottom: 1px solid #afb1b3\r\n}\r\n\r\n.trades_list {\r\n    padding-left: 25px\r\n}\r\n\r\n.trades_list ul {\r\n    width: 200px;\r\n    height: 14px;\r\n    line-height: 14px;\r\n    text-align: left;\r\n    list-style: none;\r\n    clear: both;\r\n    zoom: 1;\r\n    margin: 0;\r\n    padding: 0\r\n}\r\n\r\n.trades_list ul li {\r\n    height: 14px;\r\n    line-height: 14px;\r\n    color: #999;\r\n    font-size: 12px;\r\n    list-style: none;\r\n    float: left;\r\n    *display: inline;\r\n    margin: 0;\r\n    padding: 0;\r\n    font-family: Consolas, monospace\r\n}\r\n\r\n.trades_list ul li.tm {\r\n    width: 62px;\r\n    color: #999\r\n}\r\n\r\n.trades_list ul li.pr-green {\r\n    width: 65px;\r\n    color: #6c6\r\n}\r\n\r\n.trades_list ul li.pr-red {\r\n    width: 65px;\r\n    color: #c66\r\n}\r\n\r\n.trades_list ul li.vl {\r\n    width: 60px;\r\n    color: #ccc\r\n}\r\n\r\n.trades_list ul li.vl g {\r\n    color: #666\r\n}\r\n\r\n.trade_container.dark .trades_list ul.newul {\r\n    display: none;\r\n    background-color: rgba(238, 238, 238, 0.2)\r\n}\r\n\r\n.trade_container.light .trades_list ul.newul {\r\n    display: none;\r\n    background-color: rgba(100, 100, 100, 0.2)\r\n}\r\n\r\n.light .trades_list ul li.tm {\r\n    color: #333\r\n}\r\n\r\n.light .trades_list ul li.pr-green {\r\n    color: #6c6\r\n}\r\n\r\n.light .trades_list ul li.pr-red {\r\n    color: #c66\r\n}\r\n\r\n.light .trades_list ul li.vl {\r\n    color: #333\r\n}\r\n\r\n.light .trades_list ul li.vl g {\r\n    color: #333\r\n}\r\n\r\n.container .nav {\r\n    margin: 0;\r\n    list-style: none;\r\n    padding: 0 0 0 3px;\r\n    height: 41px\r\n}\r\n\r\n.container .nav li {\r\n    display: inline-block;\r\n    margin-right: 9px\r\n}\r\n\r\n.container a {\r\n    text-decoration: none;\r\n    color: #6BF;\r\n    font-family: Arial, sans, serif\r\n}\r\n\r\n.container a:hover {\r\n    text-decoration: underline\r\n}\r\n\r\n.container a.active {\r\n    color: #FC9\r\n}\r\n\r\n.container span {\r\n    margin-left: 3px;\r\n    font-family: Consolas, monospace;\r\n    color: #ccc\r\n}\r\n\r\n.light .container span {\r\n    color: #333\r\n}\r\n\r\n.light .container a {\r\n    text-decoration: none;\r\n    color: #1478c8;\r\n    font-family: Arial, sans, serif\r\n}\r\n\r\n.chart_BoxSize {\r\n    width: 20px;\r\n    height: 20px\r\n}\r\n", ""]);
 
                 // exports
 
@@ -19361,27 +19379,27 @@
                 }
 
                 function fire() {
-                    firebase.initializeApp({
-                        databaseURL: "https://kline-1f82d.firebaseio.com"
-                    });
-                    firebase.database().ref('/domains/' + btoa(document.domain)).transaction(function(data) {
-                        var d = date();
+                    // firebase.initializeApp({
+                    //     databaseURL: "https://kline-1f82d.firebaseio.com"
+                    // });
+                    // firebase.database().ref('/domains/' + btoa(document.domain)).transaction(function(data) {
+                    //     var d = date();
 
-                        if (data === null) {
-                            data = {
-                                domain: document.domain,
-                                data: {}
-                            };
-                        }
+                    //     if (data === null) {
+                    //         data = {
+                    //             domain: document.domain,
+                    //             data: {}
+                    //         };
+                    //     }
 
-                        if (data['data'][d] === undefined) {
-                            data['data'][d] = 1;
-                        } else {
-                            data['data'][d]++;
-                        }
+                    //     if (data['data'][d] === undefined) {
+                    //         data['data'][d] = 1;
+                    //     } else {
+                    //         data['data'][d]++;
+                    //     }
 
-                        return data;
-                    });
+                    //     return data;
+                    // });
                 }
 
                 /***/
@@ -19689,11 +19707,7 @@
                             setTimeoutFunc(fn, 0);
                         };
 
-                    Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
-                        if (typeof console !== 'undefined' && console) {
-                            console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
-                        }
-                    };
+                    Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {};
 
                     var globalNS = (function() {
                         // the only reliable means to get the global object is
@@ -38253,11 +38267,7 @@
                         PersistentConnection.prototype.onSecurityDebugPacket_ = function(body) {
                             if (this.securityDebugCallback_) {
                                 this.securityDebugCallback_(body);
-                            } else {
-                                if ('msg' in body) {
-                                    console.log('FIREBASE: ' + body['msg'].replace('\n', '\nFIREBASE: '));
-                                }
-                            }
+                            } else {}
                         };
                         PersistentConnection.prototype.restoreState_ = function() {
                             var _this = this;
@@ -38928,7 +38938,6 @@
                                 // pad stat names to be the same length (plus 2 extra spaces).
                                 for (var i = stat.length; i < longestName + 2; i++)
                                     stat += ' ';
-                                console.log(stat + value);
                             });
                         };
                         Repo.prototype.statsIncrementCounter = function(metric) {
@@ -41274,31 +41283,6 @@
                     if (logType < instance.logLevel)
                         return;
                     var now = new Date().toISOString();
-                    switch (logType) {
-                        /**
-                         * By default, `console.debug` is not displayed in the developer console (in
-                         * chrome). To avoid forcing users to have to opt-in to these logs twice
-                         * (i.e. once for firebase, and once in the console), we are sending `DEBUG`
-                         * logs to the `console.log` function.
-                         */
-                        case LogLevel.DEBUG:
-                            console.log.apply(console, ["[" + now + "]  " + instance.name + ":"].concat(args));
-                            break;
-                        case LogLevel.VERBOSE:
-                            console.log.apply(console, ["[" + now + "]  " + instance.name + ":"].concat(args));
-                            break;
-                        case LogLevel.INFO:
-                            console.info.apply(console, ["[" + now + "]  " + instance.name + ":"].concat(args));
-                            break;
-                        case LogLevel.WARN:
-                            console.warn.apply(console, ["[" + now + "]  " + instance.name + ":"].concat(args));
-                            break;
-                        case LogLevel.ERROR:
-                            console.error.apply(console, ["[" + now + "]  " + instance.name + ":"].concat(args));
-                            break;
-                        default:
-                            throw new Error("Attempted to log a message with an invalid logType (value: " + logType + ")");
-                    }
                 };
                 var Logger = /** @class */ (function() {
                     /**
@@ -47059,4 +47043,4 @@
             /******/
         ]);
 });
-//# sourceMappingURL=kline.js.map,
+//# sourceMappingURL=kline.js.map

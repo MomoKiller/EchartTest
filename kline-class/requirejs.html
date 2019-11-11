@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>K线图</title>
+    <link href="/lib/main.css" rel="stylesheet" />
+    <!-- 调试用 -->
+    <script src="/lib/jquery.js"></script>
+    <script src="/lib/require.js"></script>
+</head>
+
+<body>
+    <div style="width: 80%;">
+        <div id="kline_container"></div>
+    </div>
+
+    <script type="text/javascript">
+        require.config({
+            paths: {
+                "jquery": "/lib/jquery",
+                "jquery.mousewheel": "/lib/jquery.mousewheel",
+                "sockjs": "/lib/sockjs",
+                "stomp": "/lib/stomp",
+                "kline": "/lib/kline"
+            },
+            shim: {
+                "jquery.mousewheel": {
+                    deps: ["jquery"]
+                },
+                "kline": {
+                    deps: ["jquery.mousewheel", "sockjs", "stomp"]
+                }
+            }
+        });
+
+        let kline;
+        let resData = {};
+        $.get('/mock.json', (res) => {
+
+            resData = res;
+            require(['kline'], () => {
+                kline = new Kline({
+                    element: "#kline_container",
+                    width: document.getElementById('kline_container').width,
+                    height: document.getElementById('kline_container').height,
+                    theme: 'dark', // light/dark
+                    language: 'zh-cn', // zh-cn/en-us/zh-tw
+                    ranges: ["1w", "1d", "1h", "30m", "15m", "5m", "1m", "line"],
+                    symbol: "BTC",
+                    symbolName: "BTC/USD",
+                    type: "poll", // poll/socket
+                    limit: 1000,
+                    intervalTime: 3000,
+                    debug: true,
+                    showTrade: false, // 显示右侧图表
+                    datasource: resData, // 数据源
+                    onRangeChange: (e) => { // 事件赛选值变更
+                        console.log(e);
+                    }
+                });
+                console.log(kline);
+                kline.draw();
+            });
+
+            // 设置数据动态改变
+            setTimeout(()=>{
+                resData = {};
+            }, 2000);
+        });
+
+        setTimeout(() => {
+            // kline.setTheme('light'); // 设置主题
+            // kline.setLanguage('en-us'); // 设置语言
+            // kline.pause();
+            // kline.resend();
+            // kline.resize();
+            // kline.setShowTrade(true);
+            // kline.setSymbol();
+            // kline.toggleTrade();
+        }, 2000);
+    </script>
+
+</body>
+
+</html>
